@@ -1,0 +1,278 @@
+{
+  "schema": "ospec-knowledge-map/v1",
+  "profile": "public-library",
+  "slots": [
+    {
+      "id": "business.problem",
+      "dimension": "business",
+      "state": "confirmed",
+      "decisions": [
+        "system-boundaries"
+      ],
+      "source": {
+        "kind": "user",
+        "ref": "respuesta del usuario, foundation 2026-10-17: visibilidad PR+CI sin salir de la TUI"
+      }
+    },
+    {
+      "id": "business.goals",
+      "dimension": "business",
+      "state": "confirmed",
+      "decisions": [
+        "test-strategy"
+      ],
+      "source": {
+        "kind": "user",
+        "ref": "respuesta del usuario, foundation 2026-10-17: uso diario propio, sin metrica numerica"
+      }
+    },
+    {
+      "id": "business.constraints",
+      "dimension": "business",
+      "state": "confirmed",
+      "decisions": [
+        "trust-boundaries",
+        "technology-choice"
+      ],
+      "source": {
+        "kind": "user",
+        "ref": "respuesta del usuario, foundation 2026-10-17: MIT + Commons Clause v1.0; requiere gh instalado y autenticado"
+      }
+    },
+    {
+      "id": "functional.actors",
+      "dimension": "functional",
+      "state": "assumed",
+      "decisions": [
+        "system-boundaries"
+      ],
+      "source": {
+        "kind": "user",
+        "ref": "respuesta del usuario, foundation 2026-10-17: 'creo que solo yo, pero no lo se'"
+      },
+      "review_trigger": "re-evaluar al preparar la publicacion en npm o cuando haya usuarios distintos del autor"
+    },
+    {
+      "id": "functional.capabilities",
+      "dimension": "functional",
+      "state": "confirmed",
+      "decisions": [
+        "system-boundaries"
+      ],
+      "source": {
+        "kind": "user",
+        "ref": "respuesta del usuario, foundation 2026-10-17: listar PRs, estado CI por PR, auto-refresh, tabs/agrupacion de stacks"
+      }
+    },
+    {
+      "id": "functional.exclusions",
+      "dimension": "functional",
+      "state": "confirmed",
+      "decisions": [
+        "system-boundaries"
+      ],
+      "source": {
+        "kind": "user",
+        "ref": "respuesta del usuario, foundation 2026-10-17: sin acciones sobre PRs, sin auth propia, sin multi-repo/org"
+      }
+    },
+    {
+      "id": "team.shape",
+      "dimension": "team",
+      "state": "confirmed",
+      "decisions": [
+        "deployment-topology",
+        "technology-choice"
+      ],
+      "source": {
+        "kind": "user",
+        "ref": "respuesta del usuario, entrevista foundation 2026-10-17"
+      }
+    },
+    {
+      "id": "team.production-owner",
+      "dimension": "team",
+      "state": "confirmed",
+      "decisions": [
+        "operability"
+      ],
+      "source": {
+        "kind": "user",
+        "ref": "respuesta del usuario, entrevista foundation 2026-10-17"
+      }
+    },
+    {
+      "id": "quality.drivers",
+      "dimension": "quality",
+      "state": "confirmed",
+      "decisions": [
+        "system-boundaries",
+        "deployment-topology"
+      ],
+      "source": {
+        "kind": "user",
+        "ref": "respuesta del usuario, foundation 2026-10-17: claridad visual + actualizacion casi en vivo + resiliencia; sin medida de frescura"
+      }
+    },
+    {
+      "id": "architecture.boundaries",
+      "dimension": "architecture",
+      "state": "confirmed",
+      "decisions": [
+        "system-boundaries",
+        "integration-style"
+      ],
+      "source": {
+        "kind": "user",
+        "ref": "respuesta del usuario, foundation 2026-10-17"
+      }
+    },
+    {
+      "id": "architecture.data",
+      "dimension": "architecture",
+      "state": "confirmed",
+      "decisions": [
+        "data-ownership"
+      ],
+      "source": {
+        "kind": "user",
+        "ref": "respuesta del usuario, foundation 2026-10-17"
+      }
+    },
+    {
+      "id": "architecture.integration",
+      "dimension": "architecture",
+      "state": "confirmed",
+      "decisions": [
+        "integration-style",
+        "contract-evolution"
+      ],
+      "source": {
+        "kind": "user",
+        "ref": "respuesta del usuario, foundation 2026-10-17"
+      }
+    },
+    {
+      "id": "architecture.deployment",
+      "dimension": "architecture",
+      "state": "confirmed",
+      "decisions": [
+        "deployment-topology"
+      ],
+      "source": {
+        "kind": "user",
+        "ref": "respuesta del usuario, foundation 2026-10-17"
+      }
+    },
+    {
+      "id": "architecture.trust",
+      "dimension": "architecture",
+      "state": "confirmed",
+      "decisions": [
+        "trust-boundaries"
+      ],
+      "source": {
+        "kind": "user",
+        "ref": "respuesta del usuario, foundation 2026-10-17: gh con credenciales del usuario; render escapa dato no confiable"
+      }
+    },
+    {
+      "id": "technology.stack",
+      "dimension": "technology",
+      "state": "confirmed",
+      "decisions": [
+        "technology-choice"
+      ],
+      "source": {
+        "kind": "user",
+        "ref": "respuesta del usuario, foundation 2026-10-17: TypeScript + OpenTUI/Solid"
+      }
+    },
+    {
+      "id": "technology.licenses",
+      "dimension": "technology",
+      "state": "confirmed",
+      "decisions": [
+        "technology-choice"
+      ],
+      "source": {
+        "kind": "user",
+        "ref": "respuesta del usuario, foundation 2026-10-17: solo dependencias permisivas compatibles"
+      }
+    },
+    {
+      "id": "operation.observability",
+      "dimension": "operation",
+      "state": "confirmed",
+      "decisions": [
+        "operability"
+      ],
+      "source": {
+        "kind": "user",
+        "ref": "respuesta del usuario, foundation 2026-10-17: errores claros en el panel + logs del host"
+      }
+    },
+    {
+      "id": "operation.backup",
+      "dimension": "operation",
+      "state": "n/a",
+      "decisions": [
+        "data-ownership",
+        "operability"
+      ],
+      "reason": "el plugin no persiste datos propios (arquitectura: sin datos propios); no hay nada que respaldar ni restaurar"
+    },
+    {
+      "id": "delivery.environments",
+      "dimension": "delivery",
+      "state": "confirmed",
+      "decisions": [
+        "delivery-target",
+        "deployment-topology"
+      ],
+      "source": {
+        "kind": "user",
+        "ref": "respuesta del usuario, foundation 2026-10-17"
+      }
+    },
+    {
+      "id": "delivery.versioning",
+      "dimension": "delivery",
+      "state": "confirmed",
+      "decisions": [
+        "contract-evolution",
+        "delivery-target"
+      ],
+      "source": {
+        "kind": "user",
+        "ref": "respuesta del usuario, foundation 2026-10-17"
+      }
+    }
+  ],
+  "quality_scenarios": [
+    {
+      "id": "visual-ci-state-legible",
+      "origin": "Developer working in the host TUI",
+      "stimulus": "Keeps the PR panel open while working",
+      "environment": "Normal TUI session; local client available",
+      "artifact": "Sidebar panel",
+      "response": "PR list and per-PR CI state (running/green/failed) readable at a glance in the host's visual style"
+    },
+    {
+      "id": "fresh-ci-state",
+      "origin": "CI system changing a run's state",
+      "stimulus": "A CI run changes state while the panel is open",
+      "environment": "Local client available, network up",
+      "artifact": "Panel content",
+      "response": "The panel reflects the new state without manual refresh"
+    },
+    {
+      "id": "panel-resilience",
+      "origin": "Environment (client missing/unauth, offline, rate limit, no PRs)",
+      "stimulus": "The data source fails or is unavailable",
+      "environment": "Any",
+      "artifact": "Panel and host TUI",
+      "response": "Explicit message about the condition; the host TUI stays usable; no crash"
+    }
+  ]
+}
