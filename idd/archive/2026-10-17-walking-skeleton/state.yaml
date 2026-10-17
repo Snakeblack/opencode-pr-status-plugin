@@ -1,0 +1,772 @@
+{
+  "schema": "idd-state/v1",
+  "change": "walking-skeleton",
+  "mode": "idd",
+  "status": "closed",
+  "intent": {
+    "request": "Continue with the roadmap: implement the M1 walking skeleton in docs/roadmap.md. The plugin loads in the host TUI and registers the sidebar panel. It reads the project's open PRs and each PR's aggregated check state through the local client. It refreshes while the panel is open (no manual reload). It renders a plain list with the host's theme tokens and shows clear messages when the client is missing, unauthenticated, offline or rate-limited. No tabs or stack grouping in this slice.",
+    "kind": "feature",
+    "summary": "M1 walking skeleton: TUI plugin registering a sidebar panel showing the project's open PRs and each PR's aggregated CI state, read through the local gh client, refreshing while the panel is open.",
+    "acceptance": "Loaded from this repository into the host TUI, the panel lists the current project's open PRs (number, title, branch) with each one's aggregated CI state (running/green/red) from gh, updates without manual reload, and shows a clear message when the client is missing, unauthenticated, offline or rate-limited, without breaking the TUI."
+  },
+  "facts": {
+    "coverage": [
+      {
+        "category": "inputs",
+        "question": "Which open PRs should the panel list — all open including drafts, or only the user's — in what order (e.g. PR number), and every how many seconds should it refresh while open (a limit that respects GitHub rate limits)?"
+      },
+      {
+        "category": "uniqueness",
+        "cite": {
+          "kind": "path",
+          "path": "docs/product/functional-scope.md",
+          "line": 15
+        }
+      },
+      {
+        "category": "persistence",
+        "cite": {
+          "kind": "path",
+          "path": "docs/architecture/decisions/0002-no-persisted-state.md",
+          "line": 24
+        }
+      },
+      {
+        "category": "copy",
+        "question": "In which language should the panel's visible strings be written (list header, empty state, and the client-missing/unauth/offline/rate-limit messages) — English, Spanish, or both?"
+      },
+      {
+        "category": "url-state",
+        "cite": {
+          "kind": "path",
+          "path": "docs/product/functional-scope.md",
+          "line": 20
+        }
+      },
+      {
+        "category": "accessibility",
+        "question": "Should each CI state carry more than color (for example a symbol or a text label like running/green/failed) so it stays legible without color, and any other accessibility expectation for the panel?"
+      },
+      {
+        "category": "errors",
+        "cite": {
+          "kind": "request",
+          "text": "shows clear messages when the client is missing, unauthenticated, offline or rate-limited"
+        }
+      }
+    ]
+  },
+  "plan": {
+    "paths": [
+      ".gitignore",
+      "package-lock.json",
+      "package.json",
+      "src/client/gh.ts",
+      "src/domain/aggregate.ts",
+      "src/domain/safe-text.ts",
+      "src/domain/types.ts",
+      "src/index.ts",
+      "src/panel.tsx",
+      "src/plugin.ts",
+      "src/refresh.ts",
+      "src/tui.tsx",
+      "test/aggregate.test.ts",
+      "test/fixtures/gh-not-a-repo.txt",
+      "test/fixtures/gh-offline.txt",
+      "test/fixtures/gh-rate-limit.txt",
+      "test/fixtures/gh-unauth.txt",
+      "test/fixtures/pr-list-empty.json",
+      "test/fixtures/pr-list.json",
+      "test/fixtures/rollup-edge-cases.json",
+      "test/gh-client.test.ts",
+      "test/plugin.test.ts",
+      "test/refresh.test.ts",
+      "test/safe-text.test.ts",
+      "tsconfig.json"
+    ],
+    "work_units": 5,
+    "decision": true,
+    "operations": []
+  },
+  "signals": [
+    {
+      "id": "always",
+      "reason": "every change with a resolved intent",
+      "source": "declaration"
+    },
+    {
+      "id": "strict-tdd",
+      "reason": "the project declares strict_tdd",
+      "source": "declaration"
+    },
+    {
+      "id": "multi-unit-or-decision",
+      "reason": "declared 5 work units",
+      "source": "declaration"
+    },
+    {
+      "id": "public-contract",
+      "reason": "public contract: touches src/index.ts and 1 more (matches src/index.ts)",
+      "source": "declaration"
+    },
+    {
+      "id": "security-boundary",
+      "reason": "security boundary: touches src/client/gh.ts (matches src/client/**)",
+      "source": "declaration"
+    },
+    {
+      "id": "adr-or-quality-attribute",
+      "reason": "declared ADR 0001, 0002, 0003 and quality scenario fresh-ci-state, panel-resilience, visual-ci-state-legible",
+      "source": "declaration"
+    }
+  ],
+  "impacts": [
+    {
+      "kind": "adr",
+      "id": "0001",
+      "impact": "conforms",
+      "reason": "Every platform read is the execFile('gh', ['pr','list',...]) call in src/client/gh.ts; src/ contains no HTTP client, no api.github.com reference and no token or credential read; the only runtime dependency is @opencode/plugin."
+    },
+    {
+      "kind": "adr",
+      "id": "0002",
+      "impact": "conforms",
+      "reason": "src/ performs no filesystem writes and never touches host storage (no node:fs write call, no context.storage use); fetched data lives in the panel's createSignal for the session only; the mocked-host plugin tests pass with a host fake that offers no storage surface at all."
+    },
+    {
+      "kind": "adr",
+      "id": "0003",
+      "impact": "conforms",
+      "reason": "Platform text crosses exactly one boundary: toPrViews runs every title and branch through normalizePlatformText (src/domain/safe-text.ts); tests cover ANSI escape sequences, control characters, bidi and zero-width controls and surrogate-pair truncation; the panel renders only those normalised values."
+    },
+    {
+      "kind": "scenario",
+      "id": "fresh-ci-state",
+      "impact": "conforms",
+      "reason": "createRefresher performs the first read immediately on mount and every 30 seconds while the panel is mounted; a tick is skipped while a read is in flight and stop cancels the timer; the data is always a live read from gh, never a local cache."
+    },
+    {
+      "kind": "scenario",
+      "id": "panel-resilience",
+      "impact": "conforms",
+      "reason": "gh failures classify into missing, unauthenticated, offline, rate-limited and error; the panel shows explicit copy per kind, keeps the last good list visible when a refresh fails and the refresher reports sync and async errors without breaking its loop."
+    },
+    {
+      "kind": "scenario",
+      "id": "visual-ci-state-legible",
+      "impact": "conforms",
+      "reason": "Each row shows a distinct state mark (filled circle, cross, half circle, hollow circle) in theme feedback colours (success, error, warning, faint) with muted number and faint branch and draft text; the state stays readable without colour."
+    }
+  ],
+  "attestations": [
+    {
+      "kind": "adr",
+      "id": "0001",
+      "evidence": "Source scan: no HTTP client to the platform anywhere in src/ (search for fetch/http/axios/undici/XMLHttpRequest returns no matches); the only platform read is execFile('gh', ['pr','list',...]) in src/client/gh.ts, the single production binding. No credential or token read: process.env is spread only to set LC_ALL/LANG=C for the child. Dependency check: npm ls --omit=dev lists @opencode/plugin only. Host smoke (opencode v2.0.32): the sidebar listed live open PRs through the real gh CLI with no auth handling in the plugin (capture in /tmp/opencode/prstatus-smoke/sidebar-capture-1.txt).",
+      "recorded_at": "2026-10-17T17:40:58.798Z"
+    },
+    {
+      "kind": "adr",
+      "id": "0002",
+      "evidence": "Source scan: no node:fs, writeFile or storage use in src/; the plugin writes no files and touches no host storage. Fetched PRs live only in the panel createSignal while mounted; onCleanup stops the refresher and slot registration returns its unregister function (test/plugin.test.ts asserts both). The mocked host in test/plugin.test.ts exposes no storage surface at all, so any storage call would fail the suite; all tests pass. Host smoke: host logs show only gh/git child processes and no plugin-created files.",
+      "recorded_at": "2026-10-17T17:40:58.854Z"
+    },
+    {
+      "kind": "adr",
+      "id": "0003",
+      "evidence": "Single boundary: toPrViews (src/domain/aggregate.ts) runs every title and branch through normalizePlatformText (src/domain/safe-text.ts) before anything renders. test/aggregate.test.ts feeds an adversarial title (newline + ANSI SGR escape + RLO bidi char) through the full mapping and asserts the cleaned text; test/safe-text.test.ts adds 10 cases: ANSI escapes, C0/C1 controls, zero-width and bidi controls, ordinary text, emoji sequences intact, non-strings, exact limit, truncation that never splits a surrogate pair. rollup-edge-cases.json carries wide/zero-width Unicode titles. Host smoke: wide Unicode and emoji titles rendered intact in the sidebar with no terminal corruption. (Note: the boundary cleans instead of escaping; nothing raw ever reaches the renderer.)",
+      "recorded_at": "2026-10-17T17:40:58.911Z"
+    }
+  ],
+  "obligations": [
+    {
+      "id": "checks-pass",
+      "signal": "always",
+      "status": "satisfied",
+      "evidence": [
+        "ev-10"
+      ]
+    },
+    {
+      "id": "tdd-red-green",
+      "signal": "strict-tdd",
+      "status": "satisfied",
+      "evidence": [
+        "ev-1",
+        "ev-2",
+        "ev-3",
+        "ev-4",
+        "ev-5",
+        "ev-6"
+      ]
+    },
+    {
+      "id": "living-doc",
+      "signal": "multi-unit-or-decision",
+      "status": "satisfied",
+      "evidence": [
+        "ev-13"
+      ]
+    },
+    {
+      "id": "contract-spec-and-test",
+      "signal": "public-contract",
+      "status": "satisfied",
+      "evidence": [
+        "ev-11"
+      ]
+    },
+    {
+      "id": "trust-review",
+      "signal": "security-boundary",
+      "status": "satisfied",
+      "evidence": [
+        "ev-12"
+      ]
+    },
+    {
+      "id": "adr-impact-declaration",
+      "signal": "adr-or-quality-attribute",
+      "status": "satisfied",
+      "evidence": [
+        "ev-9"
+      ]
+    }
+  ],
+  "gates": [
+    {
+      "id": "open-facts",
+      "status": "resolved",
+      "answer": "PRs shown: all open, including drafts. Order: by PR number, ascending. Refresh: every 30 seconds while the panel is open. Copy language: English. CI state: symbol + color (legible also without color).",
+      "source": "user"
+    }
+  ],
+  "evidence": [
+    {
+      "id": "ev-1",
+      "kind": "tdd-red-green",
+      "obligation": "tdd-red-green",
+      "recorded_at": "2026-10-17T17:12:43.082Z",
+      "detail": {
+        "red": "run-1",
+        "green": "run-2"
+      }
+    },
+    {
+      "id": "ev-2",
+      "kind": "tdd-red-green",
+      "obligation": "tdd-red-green",
+      "recorded_at": "2026-10-17T17:14:12.929Z",
+      "detail": {
+        "red": "run-3",
+        "green": "run-4"
+      }
+    },
+    {
+      "id": "ev-3",
+      "kind": "tdd-red-green",
+      "obligation": "tdd-red-green",
+      "recorded_at": "2026-10-17T17:14:49.980Z",
+      "detail": {
+        "red": "run-5",
+        "green": "run-6"
+      }
+    },
+    {
+      "id": "ev-4",
+      "kind": "tdd-red-green",
+      "obligation": "tdd-red-green",
+      "recorded_at": "2026-10-17T17:15:36.045Z",
+      "detail": {
+        "red": "run-7",
+        "green": "run-8"
+      }
+    },
+    {
+      "id": "ev-5",
+      "kind": "tdd-red-green",
+      "obligation": "tdd-red-green",
+      "recorded_at": "2026-10-17T17:16:46.110Z",
+      "detail": {
+        "red": "run-9",
+        "green": "run-10"
+      }
+    },
+    {
+      "id": "ev-6",
+      "kind": "tdd-red-green",
+      "obligation": "tdd-red-green",
+      "recorded_at": "2026-10-17T17:24:41.442Z",
+      "detail": {
+        "red": "run-9",
+        "green": "run-11"
+      }
+    },
+    {
+      "id": "ev-7",
+      "kind": "check-run",
+      "obligation": "checks-pass",
+      "recorded_at": "2026-10-17T17:41:03.707Z",
+      "detail": {
+        "tree": "sha256:7249091a6a6be687d51e24592b9368ea81d784ee7fd8671a222356e7f406417a",
+        "runs": [
+          "run-12",
+          "run-13",
+          "run-14"
+        ]
+      }
+    },
+    {
+      "id": "ev-8",
+      "kind": "contract-spec-and-test",
+      "obligation": "contract-spec-and-test",
+      "recorded_at": "2026-10-17T17:41:03.707Z",
+      "detail": {
+        "tree": "sha256:7249091a6a6be687d51e24592b9368ea81d784ee7fd8671a222356e7f406417a",
+        "check": "ev-7",
+        "documents": [
+          "src/index.ts",
+          "src/tui.tsx"
+        ],
+        "tests": [
+          "test/aggregate.test.ts",
+          "test/fixtures/gh-not-a-repo.txt",
+          "test/fixtures/gh-offline.txt",
+          "test/fixtures/gh-rate-limit.txt",
+          "test/fixtures/gh-unauth.txt",
+          "test/fixtures/pr-list-empty.json",
+          "test/fixtures/pr-list.json",
+          "test/fixtures/rollup-edge-cases.json",
+          "test/gh-client.test.ts",
+          "test/plugin.test.ts",
+          "test/refresh.test.ts",
+          "test/safe-text.test.ts"
+        ]
+      }
+    },
+    {
+      "id": "ev-9",
+      "kind": "adr-impact-declaration",
+      "obligation": "adr-impact-declaration",
+      "recorded_at": "2026-10-17T17:41:03.707Z",
+      "detail": {
+        "refs": [
+          "adr:0001 conforms",
+          "adr:0002 conforms",
+          "adr:0003 conforms",
+          "scenario:fresh-ci-state conforms",
+          "scenario:panel-resilience conforms",
+          "scenario:visual-ci-state-legible conforms"
+        ],
+        "records": []
+      }
+    },
+    {
+      "id": "ev-10",
+      "kind": "check-run",
+      "obligation": "checks-pass",
+      "recorded_at": "2026-10-17T17:41:06.033Z",
+      "detail": {
+        "tree": "sha256:7249091a6a6be687d51e24592b9368ea81d784ee7fd8671a222356e7f406417a",
+        "runs": [
+          "run-15",
+          "run-16",
+          "run-17"
+        ]
+      }
+    },
+    {
+      "id": "ev-11",
+      "kind": "contract-spec-and-test",
+      "obligation": "contract-spec-and-test",
+      "recorded_at": "2026-10-17T17:41:06.033Z",
+      "detail": {
+        "tree": "sha256:7249091a6a6be687d51e24592b9368ea81d784ee7fd8671a222356e7f406417a",
+        "check": "ev-10",
+        "documents": [
+          "src/index.ts",
+          "src/tui.tsx"
+        ],
+        "tests": [
+          "test/aggregate.test.ts",
+          "test/fixtures/gh-not-a-repo.txt",
+          "test/fixtures/gh-offline.txt",
+          "test/fixtures/gh-rate-limit.txt",
+          "test/fixtures/gh-unauth.txt",
+          "test/fixtures/pr-list-empty.json",
+          "test/fixtures/pr-list.json",
+          "test/fixtures/rollup-edge-cases.json",
+          "test/gh-client.test.ts",
+          "test/plugin.test.ts",
+          "test/refresh.test.ts",
+          "test/safe-text.test.ts"
+        ]
+      }
+    },
+    {
+      "id": "ev-12",
+      "kind": "frozen-review",
+      "obligation": "trust-review",
+      "recorded_at": "2026-10-17T17:46:34.058Z",
+      "detail": {
+        "lineage_id": "sha256:3bcd27ba2e4d4636fc30dddb9b1b1c79a5075d74c217814af37fda50727a9610",
+        "candidate_id": "sha256:5a78cf8032323e56c592320eafd39731d66dd84f3ad6f8bf31132b9e05f1e612",
+        "candidate_tree": "046f27aa558c980ffc4367ce3322f3d4e84ea8dd",
+        "findings_digest": "sha256:4d59fd4aa8eefff6dbf7cd085cc100ee928217573658f8bbc301aa4a3f1adc0f"
+      }
+    },
+    {
+      "id": "ev-13",
+      "kind": "living-doc-current",
+      "obligation": "living-doc",
+      "recorded_at": "2026-10-17T17:48:16.700Z"
+    }
+  ],
+  "base": "c611c08ae5c06a05ff1b6a17624a20bdd707c0cb",
+  "runs": [
+    {
+      "id": "run-1",
+      "purpose": "tdd-red-green",
+      "unit": "safe-text",
+      "command": "npm test -- test/safe-text.test.ts",
+      "exit_code": 1,
+      "output_sha256": "sha256:acec85c91085d9645849130cfd45173281a23d5ff402ef566b2d4e4518d5c531",
+      "tree": "sha256:9a00832e45293d7ffebce8a54844c15aa9170efae51459c346e4b44ab36d45cc",
+      "recorded_at": "2026-10-17T17:12:33.248Z"
+    },
+    {
+      "id": "run-2",
+      "purpose": "tdd-red-green",
+      "unit": "safe-text",
+      "command": "npm test -- test/safe-text.test.ts",
+      "exit_code": 0,
+      "output_sha256": "sha256:da94eb4a4ea93a6ca348864af324a101324c7f1e01fe010ecd2d6cc01d7f610b",
+      "tree": "sha256:3879c0e40377b4fb09e5cccdc9ccc2b6d6639b4f6a80a22646012bf2390877ef",
+      "recorded_at": "2026-10-17T17:12:43.082Z"
+    },
+    {
+      "id": "run-3",
+      "purpose": "tdd-red-green",
+      "unit": "aggregate",
+      "command": "npm test -- test/aggregate.test.ts",
+      "exit_code": 1,
+      "output_sha256": "sha256:2493f6add5fc7391975536857134580ded81d89789aba6740daf82a873a06c3e",
+      "tree": "sha256:792f39075a70718a0b9e5df335a2899be06d27531d15c029c2f6f45667c90491",
+      "recorded_at": "2026-10-17T17:13:39.175Z"
+    },
+    {
+      "id": "run-4",
+      "purpose": "tdd-red-green",
+      "unit": "aggregate",
+      "command": "npm test -- test/aggregate.test.ts",
+      "exit_code": 0,
+      "output_sha256": "sha256:ea0e4c54ce8e61bcb5da02fc54b94a9c13cbbb00ef2c23c9385abd4a7f3112b3",
+      "tree": "sha256:d3ca989d53b64eec02e69f702deae304478aeb3f9856d4e3659c2fd02a3d3d10",
+      "recorded_at": "2026-10-17T17:14:12.929Z"
+    },
+    {
+      "id": "run-5",
+      "purpose": "tdd-red-green",
+      "unit": "refresh",
+      "command": "npm test -- test/refresh.test.ts",
+      "exit_code": 1,
+      "output_sha256": "sha256:ef9ded8530920cf59e52a442988554a75fa0c6a3673bc2eedb6526043843fd5f",
+      "tree": "sha256:5d7d0f5e1a994e1dca9b03f5baacedd8c515f45177e87f8d90c66d307922c06f",
+      "recorded_at": "2026-10-17T17:14:39.031Z"
+    },
+    {
+      "id": "run-6",
+      "purpose": "tdd-red-green",
+      "unit": "refresh",
+      "command": "npm test -- test/refresh.test.ts",
+      "exit_code": 0,
+      "output_sha256": "sha256:7de7b88f3eda2ce75a1fbb8b54dab784579c8064314f71e8921de1403976723e",
+      "tree": "sha256:de34edb8f82d25f2b4b8bccdfed3e450e31dc75b78b8c1f9396c000a794c966e",
+      "recorded_at": "2026-10-17T17:14:49.980Z"
+    },
+    {
+      "id": "run-7",
+      "purpose": "tdd-red-green",
+      "unit": "gh-client",
+      "command": "npm test -- test/gh-client.test.ts",
+      "exit_code": 1,
+      "output_sha256": "sha256:d981f11cf75b0d04b05b200a03233e6642d3cf73648c9d0f417ed9dc11650d57",
+      "tree": "sha256:8d59a47646e0469b09ed0f107baadb786012faea2b7e9a89afaa41366d6886ea",
+      "recorded_at": "2026-10-17T17:15:18.929Z"
+    },
+    {
+      "id": "run-8",
+      "purpose": "tdd-red-green",
+      "unit": "gh-client",
+      "command": "npm test -- test/gh-client.test.ts",
+      "exit_code": 0,
+      "output_sha256": "sha256:a1921ed90d6ef5b3dde2dd7c843bbb66ce78f6f668b579c479c8cfd233a7f58a",
+      "tree": "sha256:584c2e655d85611705aa7e31744096549b74f43741e03e61b1b1e39762af40ae",
+      "recorded_at": "2026-10-17T17:15:36.045Z"
+    },
+    {
+      "id": "run-9",
+      "purpose": "tdd-red-green",
+      "unit": "plugin",
+      "command": "npm test -- test/plugin.test.ts",
+      "exit_code": 1,
+      "output_sha256": "sha256:7372ed5df2f3b6a097c5aa4359f6aa85db9751ce810d4f06cbc905835602a771",
+      "tree": "sha256:1f131680b33bbaca85fa7ca4f3ce8fd068447f845d44a250f40c19ca5f6a0fdb",
+      "recorded_at": "2026-10-17T17:16:22.803Z"
+    },
+    {
+      "id": "run-10",
+      "purpose": "tdd-red-green",
+      "unit": "plugin",
+      "command": "npm test -- test/plugin.test.ts",
+      "exit_code": 0,
+      "output_sha256": "sha256:53861760ffdac5d02d3a105a5dc556a56b9a0d4b609bc8cfb53e8f1691dfdf24",
+      "tree": "sha256:8b4888b404e8cd88ee324270d2cb712578ddb7fd86363b774fa0134ea837132c",
+      "recorded_at": "2026-10-17T17:16:46.110Z"
+    },
+    {
+      "id": "run-11",
+      "purpose": "tdd-red-green",
+      "unit": "plugin",
+      "command": "npm test -- test/plugin.test.ts",
+      "exit_code": 0,
+      "output_sha256": "sha256:a2e36988f5d0d68f722b6d2f0ce42da5b39e44a1a7cf140945d2bd36c004b7e5",
+      "tree": "sha256:5b2bef9f38d81023bc021fde56b06cd8e79d9637386265891b0e651e012d9a7f",
+      "recorded_at": "2026-10-17T17:24:41.442Z"
+    },
+    {
+      "id": "run-12",
+      "purpose": "checks",
+      "name": "test",
+      "command": "npm test",
+      "exit_code": 0,
+      "output_sha256": "sha256:54157ca71525ad02d26079b03a66290997cc7c80b77e3cbf1b527fff9652e550",
+      "tree": "sha256:7249091a6a6be687d51e24592b9368ea81d784ee7fd8671a222356e7f406417a",
+      "recorded_at": "2026-10-17T17:41:03.707Z"
+    },
+    {
+      "id": "run-13",
+      "purpose": "checks",
+      "name": "lint",
+      "command": "npm run lint",
+      "exit_code": 0,
+      "output_sha256": "sha256:f7f3411b45efa3790030733e78276b6cf2d7b30ea7a5086b070a667227fc16f3",
+      "tree": "sha256:7249091a6a6be687d51e24592b9368ea81d784ee7fd8671a222356e7f406417a",
+      "recorded_at": "2026-10-17T17:41:03.707Z"
+    },
+    {
+      "id": "run-14",
+      "purpose": "checks",
+      "name": "typecheck",
+      "command": "npm run typecheck",
+      "exit_code": 0,
+      "output_sha256": "sha256:13e39dac03db02e115d4dd9b3352dedb20f12930568fb6593c57314533f974dd",
+      "tree": "sha256:7249091a6a6be687d51e24592b9368ea81d784ee7fd8671a222356e7f406417a",
+      "recorded_at": "2026-10-17T17:41:03.707Z"
+    },
+    {
+      "id": "run-15",
+      "purpose": "checks",
+      "name": "test",
+      "command": "npm test",
+      "exit_code": 0,
+      "output_sha256": "sha256:c61a34b220ae1fc7aa3d668607ba00a5b16b48316efaec64165f0ce54817ae89",
+      "tree": "sha256:7249091a6a6be687d51e24592b9368ea81d784ee7fd8671a222356e7f406417a",
+      "recorded_at": "2026-10-17T17:41:06.033Z"
+    },
+    {
+      "id": "run-16",
+      "purpose": "checks",
+      "name": "lint",
+      "command": "npm run lint",
+      "exit_code": 0,
+      "output_sha256": "sha256:ea8b151448159a75d1a8d2e11e76e7ed7220e0a0ddf9c025bb3545164382b91f",
+      "tree": "sha256:7249091a6a6be687d51e24592b9368ea81d784ee7fd8671a222356e7f406417a",
+      "recorded_at": "2026-10-17T17:41:06.033Z"
+    },
+    {
+      "id": "run-17",
+      "purpose": "checks",
+      "name": "typecheck",
+      "command": "npm run typecheck",
+      "exit_code": 0,
+      "output_sha256": "sha256:13e39dac03db02e115d4dd9b3352dedb20f12930568fb6593c57314533f974dd",
+      "tree": "sha256:7249091a6a6be687d51e24592b9368ea81d784ee7fd8671a222356e7f406417a",
+      "recorded_at": "2026-10-17T17:41:06.033Z"
+    }
+  ],
+  "reviews": [
+    {
+      "schema_version": 2,
+      "lineage_id": "sha256:3bcd27ba2e4d4636fc30dddb9b1b1c79a5075d74c217814af37fda50727a9610",
+      "generation": 1,
+      "predecessor_lineage_id": null,
+      "migration": null,
+      "recovery": null,
+      "revision": 3,
+      "status": "approved",
+      "genesis": {
+        "candidate": {
+          "projection": "idd-tree-diff/v1",
+          "base_tree": "631fc443bbf0348e8f7a09993307e562133e81a0",
+          "candidate_tree": "046f27aa558c980ffc4367ce3322f3d4e84ea8dd",
+          "paths": [
+            ".gitignore",
+            "package-lock.json",
+            "package.json",
+            "src/client/gh.ts",
+            "src/domain/aggregate.ts",
+            "src/domain/safe-text.ts",
+            "src/domain/types.ts",
+            "src/index.ts",
+            "src/panel.tsx",
+            "src/plugin.ts",
+            "src/refresh.ts",
+            "src/tui.tsx",
+            "test/aggregate.test.ts",
+            "test/fixtures/gh-not-a-repo.txt",
+            "test/fixtures/gh-offline.txt",
+            "test/fixtures/gh-rate-limit.txt",
+            "test/fixtures/gh-unauth.txt",
+            "test/fixtures/pr-list-empty.json",
+            "test/fixtures/pr-list.json",
+            "test/fixtures/rollup-edge-cases.json",
+            "test/gh-client.test.ts",
+            "test/plugin.test.ts",
+            "test/refresh.test.ts",
+            "test/safe-text.test.ts",
+            "tsconfig.json"
+          ],
+          "diff_hash": "sha256:0d4fb96ef184dc35ab0d68b529134e05e3e8384121d6f5517a183d963c7b4e93",
+          "paths_digest": "sha256:e717db211c6e6ac5166dc2d8008334048ab5abf90305f0795f15faf61c2aa9f6",
+          "authored_lines": 7593,
+          "original_changed_lines": 7593
+        },
+        "candidate_id": "sha256:5a78cf8032323e56c592320eafd39731d66dd84f3ad6f8bf31132b9e05f1e612",
+        "paths": [
+          ".gitignore",
+          "package-lock.json",
+          "package.json",
+          "src/client/gh.ts",
+          "src/domain/aggregate.ts",
+          "src/domain/safe-text.ts",
+          "src/domain/types.ts",
+          "src/index.ts",
+          "src/panel.tsx",
+          "src/plugin.ts",
+          "src/refresh.ts",
+          "src/tui.tsx",
+          "test/aggregate.test.ts",
+          "test/fixtures/gh-not-a-repo.txt",
+          "test/fixtures/gh-offline.txt",
+          "test/fixtures/gh-rate-limit.txt",
+          "test/fixtures/gh-unauth.txt",
+          "test/fixtures/pr-list-empty.json",
+          "test/fixtures/pr-list.json",
+          "test/fixtures/rollup-edge-cases.json",
+          "test/gh-client.test.ts",
+          "test/plugin.test.ts",
+          "test/refresh.test.ts",
+          "test/safe-text.test.ts",
+          "tsconfig.json"
+        ],
+        "classification": "high-risk",
+        "selected_domains": [
+          "trust"
+        ],
+        "evidence_fingerprint": "046f27aa558c980ffc4367ce3322f3d4e84ea8dd",
+        "original_changed_lines": 7593,
+        "authored_lines": 7593
+      },
+      "current_candidate_id": "sha256:5a78cf8032323e56c592320eafd39731d66dd84f3ad6f8bf31132b9e05f1e612",
+      "current_candidate": {
+        "projection": "idd-tree-diff/v1",
+        "base_tree": "631fc443bbf0348e8f7a09993307e562133e81a0",
+        "candidate_tree": "046f27aa558c980ffc4367ce3322f3d4e84ea8dd",
+        "paths": [
+          ".gitignore",
+          "package-lock.json",
+          "package.json",
+          "src/client/gh.ts",
+          "src/domain/aggregate.ts",
+          "src/domain/safe-text.ts",
+          "src/domain/types.ts",
+          "src/index.ts",
+          "src/panel.tsx",
+          "src/plugin.ts",
+          "src/refresh.ts",
+          "src/tui.tsx",
+          "test/aggregate.test.ts",
+          "test/fixtures/gh-not-a-repo.txt",
+          "test/fixtures/gh-offline.txt",
+          "test/fixtures/gh-rate-limit.txt",
+          "test/fixtures/gh-unauth.txt",
+          "test/fixtures/pr-list-empty.json",
+          "test/fixtures/pr-list.json",
+          "test/fixtures/rollup-edge-cases.json",
+          "test/gh-client.test.ts",
+          "test/plugin.test.ts",
+          "test/refresh.test.ts",
+          "test/safe-text.test.ts",
+          "tsconfig.json"
+        ],
+        "diff_hash": "sha256:0d4fb96ef184dc35ab0d68b529134e05e3e8384121d6f5517a183d963c7b4e93",
+        "paths_digest": "sha256:e717db211c6e6ac5166dc2d8008334048ab5abf90305f0795f15faf61c2aa9f6",
+        "authored_lines": 7593,
+        "original_changed_lines": 7593
+      },
+      "lenses": {
+        "trust": {
+          "selected": true,
+          "status": "completed",
+          "request_id": "walking-skeleton:lens-start:1:0",
+          "result_digest": "sha256:0fa38eeaca8882e0d194fd5ba5d8378917d98e795204f8f7a9dfdb78f111f3cc",
+          "result": {
+            "findings": []
+          },
+          "operation": null,
+          "result_request_id": "walking-skeleton:lens-result:1:1"
+        },
+        "runtime": {
+          "selected": false,
+          "status": "skipped",
+          "request_id": null,
+          "result_digest": null,
+          "result": null,
+          "operation": null
+        },
+        "evolution": {
+          "selected": false,
+          "status": "skipped",
+          "request_id": null,
+          "result_digest": null,
+          "result": null,
+          "operation": null
+        },
+        "efficiency": {
+          "selected": false,
+          "status": "skipped",
+          "request_id": null,
+          "result_digest": null,
+          "result": null,
+          "operation": null
+        }
+      },
+      "findings": [],
+      "findings_digest": "sha256:4d59fd4aa8eefff6dbf7cd085cc100ee928217573658f8bbc301aa4a3f1adc0f",
+      "correction_budget": {
+        "limit_lines": 200,
+        "used_lines": 0,
+        "failed_attempts": 0,
+        "max_failed_attempts": 3
+      },
+      "correction_history": [],
+      "validation_history": [],
+      "follow_ups": [],
+      "pending_operation": null,
+      "pending_correction": null,
+      "terminal_reason": "no-unresolved-blocking-findings"
+    }
+  ],
+  "closed_at": "2026-10-17T17:48:16.700Z"
+}

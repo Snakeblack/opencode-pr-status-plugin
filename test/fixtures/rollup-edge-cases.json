@@ -1,0 +1,86 @@
+[
+  {
+    "number": 101,
+    "title": "Skipped and neutral checks still allow green",
+    "headRefName": "feat/green",
+    "isDraft": false,
+    "statusCheckRollup": [
+      { "__typename": "CheckRun", "name": "build", "status": "COMPLETED", "conclusion": "SUCCESS", "workflowName": "CI" },
+      { "__typename": "CheckRun", "name": "docs", "status": "COMPLETED", "conclusion": "SKIPPED", "workflowName": "CI" },
+      { "__typename": "CheckRun", "name": "triage", "status": "COMPLETED", "conclusion": "NEUTRAL", "workflowName": "CI" }
+    ]
+  },
+  {
+    "number": 102,
+    "title": "A failure turns the pull request red",
+    "headRefName": "feat/red",
+    "isDraft": false,
+    "statusCheckRollup": [
+      { "__typename": "CheckRun", "name": "test", "status": "COMPLETED", "conclusion": "FAILURE", "workflowName": "CI" }
+    ]
+  },
+  {
+    "number": 103,
+    "title": "An in-progress draft is running",
+    "headRefName": "feat/running",
+    "isDraft": true,
+    "statusCheckRollup": [
+      { "__typename": "CheckRun", "name": "test", "status": "IN_PROGRESS", "conclusion": "", "workflowName": "CI" }
+    ]
+  },
+  {
+    "number": 104,
+    "title": "Legacy status contexts with a pending one",
+    "headRefName": "feat/contexts",
+    "isDraft": false,
+    "statusCheckRollup": [
+      { "__typename": "StatusContext", "context": "ci/verify", "state": "SUCCESS" },
+      { "__typename": "StatusContext", "context": "ci/deploy", "state": "PENDING" }
+    ]
+  },
+  {
+    "number": 105,
+    "title": "No checks at all",
+    "headRefName": "feat/none",
+    "isDraft": false,
+    "statusCheckRollup": []
+  },
+  {
+    "number": 106,
+    "title": "A failure beats a still-running check",
+    "headRefName": "feat/mixed",
+    "isDraft": false,
+    "statusCheckRollup": [
+      { "__typename": "CheckRun", "name": "lint", "status": "COMPLETED", "conclusion": "FAILURE", "workflowName": "CI" },
+      { "__typename": "CheckRun", "name": "test", "status": "IN_PROGRESS", "conclusion": "", "workflowName": "CI" }
+    ]
+  },
+  {
+    "number": 107,
+    "title": "Cancelled and timed out count as failed",
+    "headRefName": "feat/cancelled",
+    "isDraft": false,
+    "statusCheckRollup": [
+      { "__typename": "CheckRun", "name": "deploy", "status": "COMPLETED", "conclusion": "CANCELLED", "workflowName": "CD" },
+      { "__typename": "CheckRun", "name": "test", "status": "COMPLETED", "conclusion": "TIMED_OUT", "workflowName": "CI" }
+    ]
+  },
+  {
+    "number": 108,
+    "title": "Action required reads as failed",
+    "headRefName": "feat/action",
+    "isDraft": false,
+    "statusCheckRollup": [
+      { "__typename": "CheckRun", "name": "security", "status": "COMPLETED", "conclusion": "ACTION_REQUIRED", "workflowName": "Security" }
+    ]
+  },
+  {
+    "number": 109,
+    "title": "An error context fails",
+    "headRefName": "feat/error",
+    "isDraft": false,
+    "statusCheckRollup": [
+      { "__typename": "StatusContext", "context": "ci/build", "state": "ERROR" }
+    ]
+  }
+]

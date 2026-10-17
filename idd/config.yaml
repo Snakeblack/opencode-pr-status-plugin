@@ -12,3 +12,7 @@ impact:
     - src/tui.tsx
   security_boundary:
     - src/client/**
+contracts:
+  documents:
+    - src/index.ts
+    - src/tui.tsx
