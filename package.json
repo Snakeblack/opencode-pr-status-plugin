@@ -4,16 +4,18 @@
   "description": "OpenCode V2 sidebar panel showing your open pull requests and their aggregated CI state, read through the local gh CLI.",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts",
-    "./tui": "./src/tui.tsx"
+    ".": "./dist/index.js",
+    "./tui": "./dist/tui.js"
   },
   "files": [
-    "src"
+    "dist"
   ],
   "scripts": {
+    "build": "node scripts/build.mjs",
+    "prepare": "node scripts/build.mjs",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "lint": "biome lint ."
+    "lint": "biome lint src test scripts"
   },
   "repository": {
     "type": "git",
