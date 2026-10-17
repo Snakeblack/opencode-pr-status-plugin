@@ -1,0 +1,14 @@
+checks:
+  test: npm test
+  lint: npm run lint
+  typecheck: npm run typecheck
+team:
+  size: solo
+  experience: senior
+strict_tdd: true
+impact:
+  public_contract:
+    - src/index.ts
+    - src/tui.tsx
+  security_boundary:
+    - src/client/**
