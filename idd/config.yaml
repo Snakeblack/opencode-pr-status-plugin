@@ -12,6 +12,7 @@ impact:
     - src/tui.tsx
   security_boundary:
     - src/client/**
+    - .github/workflows/**
 contracts:
   documents:
     - src/index.ts
