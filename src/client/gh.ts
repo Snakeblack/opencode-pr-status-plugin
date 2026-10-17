@@ -26,6 +26,10 @@ export interface GhClient {
   listOpenPrs(directory: string): Promise<GhResult>;
 }
 
+// The panel is about the user's own work, so gh returns the authenticated
+// user's open pull requests only (--author @me); a stack whose base is someone
+// else's branch therefore shows its child ungrouped. baseRefName feeds the
+// stack view; it is never rendered.
 const PR_LIST_ARGS = [
   "pr",
   "list",
@@ -33,8 +37,10 @@ const PR_LIST_ARGS = [
   "open",
   "--limit",
   "50",
+  "--author",
+  "@me",
   "--json",
-  "number,title,headRefName,isDraft,statusCheckRollup",
+  "number,title,headRefName,baseRefName,isDraft,statusCheckRollup",
 ];
 
 const RATE_LIMIT = /rate limit/i;

@@ -63,7 +63,7 @@ describe("toPrViews", () => {
   it("maps a recorded real gh response", () => {
     const views = toPrViews(JSON.parse(fixture("pr-list.json")));
     expect(views).toHaveLength(1);
-    expect(views[0]).toMatchObject({ number: 354, branch: "docs/roadmap-osp-issues", draft: false, ci: "running" });
+    expect(views[0]).toMatchObject({ number: 356, branch: "fix/docs-dx-corrections", draft: false, ci: "running" });
     expect(views[0]?.title.length).toBeGreaterThan(0);
   });
 
@@ -79,6 +79,17 @@ describe("toPrViews", () => {
       [107, "failed", false],
       [108, "failed", false],
       [109, "failed", false],
+    ]);
+  });
+
+  it("groups a chained capture under its root with depths", () => {
+    const views = toPrViews(JSON.parse(fixture("chained-prs.json")));
+    expect(views.map((view) => [view.number, view.depth, view.ci])).toEqual([
+      [199, 0, "green"],
+      [201, 0, "green"],
+      [202, 1, "running"],
+      [203, 2, "failed"],
+      [205, 1, "none"],
     ]);
   });
 

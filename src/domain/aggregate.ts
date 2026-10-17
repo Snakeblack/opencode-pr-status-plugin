@@ -1,9 +1,10 @@
-// Turns the local client's JSON into what the panel renders: one aggregated
-// CI state per pull request, and the pull request rows themselves. Pure and
-// total: any shape outside the contract degrades instead of throwing.
+// Turns the local client's JSON into what the panel renders: the pull request
+// rows aggregated into CI states and ordered by stack. Pure and total: any
+// shape outside the contract degrades instead of throwing.
 // Platform text passes through the ADR 0003 boundary here, once.
 
 import { normalizePlatformText } from "./safe-text";
+import { orderStacks, type StackEntry } from "./stacks";
 import type { CiState, PrView } from "./types";
 
 const OK_CONCLUSIONS = new Set(["SUCCESS", "NEUTRAL", "SKIPPED"]);
@@ -59,23 +60,39 @@ export function aggregateCiState(rollup: unknown): CiState {
   return "none";
 }
 
-/** Maps raw `gh pr list` rows into renderable views, numbered ascending.
- * Rows without a usable positive integer number are dropped. */
+/** Maps raw `gh pr list` rows into renderable views, ordered by stack: every
+ * chain sits under its root, its children base to tip; unrelated rows stay
+ * flat, numbered ascending. Rows without a usable positive integer number are
+ * dropped; a duplicate number keeps its first row. */
 export function toPrViews(rows: unknown): PrView[] {
   if (!Array.isArray(rows)) return [];
-  const views: PrView[] = [];
+  const recordByEntry = new Map<StackEntry, Record<string, unknown>>();
+  const entries: StackEntry[] = [];
+  const seen = new Set<number>();
   for (const row of rows) {
     if (row === null || typeof row !== "object") continue;
     const record = row as Record<string, unknown>;
     const { number } = record;
     if (typeof number !== "number" || !Number.isInteger(number) || number <= 0) continue;
-    views.push({
+    if (seen.has(number)) continue;
+    seen.add(number);
+    const entry: StackEntry = {
       number,
+      head: typeof record.headRefName === "string" ? record.headRefName : "",
+      base: typeof record.baseRefName === "string" ? record.baseRefName : "",
+    };
+    recordByEntry.set(entry, record);
+    entries.push(entry);
+  }
+  return orderStacks(entries).map(({ entry, depth }) => {
+    const record = recordByEntry.get(entry) ?? {};
+    return {
+      number: entry.number,
       title: normalizePlatformText(record.title),
       branch: normalizePlatformText(record.headRefName),
       draft: record.isDraft === true,
       ci: aggregateCiState(record.statusCheckRollup),
-    });
-  }
-  return views.sort((left, right) => left.number - right.number);
+      depth,
+    };
+  });
 }

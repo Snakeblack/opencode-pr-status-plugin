@@ -1,12 +1,13 @@
-// The sidebar panel: a plain list of the current project's open pull requests
-// with each one's aggregated CI state. It reads through the local gh client on
-// a timer while it is mounted, keeps the last good list when a refresh fails,
-// and shows a clear message instead of breaking the TUI.
+// The sidebar panel: the current project's open pull requests, grouped by
+// stack, each with its aggregated CI state. It reads through the local gh
+// client on a timer while it is mounted, keeps the last good list when a
+// refresh fails, and shows a clear message instead of breaking the TUI.
 
 import { usePlugin } from "@opencode/plugin/tui";
 import { For, Show, createSignal, onCleanup, onMount, type Accessor } from "solid-js";
 
 import { ghClient, type GhErrorKind } from "./client/gh";
+import { indentPrefix } from "./domain/stacks";
 import type { CiState, PrView } from "./domain/types";
 import type { PanelProps } from "./plugin";
 import { createRefresher } from "./refresh";
@@ -60,10 +61,14 @@ function PullRequestRow(props: { readonly pr: PrView }) {
         return theme.text.faint;
     }
   };
+  // The branch line sits under its row's mark: the child's one-line title is
+  // clipped, so long text never pushes the stack shape apart.
+  const branchAlign = () => " ".repeat(indentPrefix(props.pr.depth).length);
 
   return (
     <box flexDirection="column">
-      <text wrapMode="word">
+      <text wrapMode="none" truncate>
+        <span style={{ fg: theme.text.faint }}>{indentPrefix(props.pr.depth)}</span>
         <span style={{ fg: markColor() }}>
           {STATE_MARK[props.pr.ci]}{" "}
         </span>
@@ -73,7 +78,7 @@ function PullRequestRow(props: { readonly pr: PrView }) {
       </text>
       <Show when={props.pr.branch !== ""}>
         <text fg={theme.text.faint} wrapMode="word">
-          {props.pr.branch}
+          {`${branchAlign()}${props.pr.branch}`}
         </text>
       </Show>
     </box>

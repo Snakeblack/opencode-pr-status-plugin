@@ -8,4 +8,6 @@ export interface PrView {
   branch: string;
   draft: boolean;
   ci: CiState;
+  /** Position in its stack: 0 for a root or standalone row, 1+ for a child. */
+  depth: number;
 }

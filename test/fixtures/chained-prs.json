@@ -1,0 +1,52 @@
+[
+  {
+    "number": 199,
+    "title": "fix: standalone read",
+    "headRefName": "fix/x",
+    "baseRefName": "main",
+    "isDraft": false,
+    "statusCheckRollup": [
+      { "__typename": "CheckRun", "name": "ci", "status": "COMPLETED", "conclusion": "SUCCESS" }
+    ]
+  },
+  {
+    "number": 201,
+    "title": "chore: stack base",
+    "headRefName": "feat/base",
+    "baseRefName": "main",
+    "isDraft": false,
+    "statusCheckRollup": [
+      { "__typename": "CheckRun", "name": "build", "status": "COMPLETED", "conclusion": "SUCCESS" },
+      { "__typename": "StatusContext", "context": "ci/verify", "state": "SUCCESS" }
+    ]
+  },
+  {
+    "number": 202,
+    "title": "feat: second step",
+    "headRefName": "feat/second",
+    "baseRefName": "feat/base",
+    "isDraft": false,
+    "statusCheckRollup": [
+      { "__typename": "CheckRun", "name": "build", "status": "COMPLETED", "conclusion": "SUCCESS" },
+      { "__typename": "CheckRun", "name": "e2e", "status": "IN_PROGRESS", "conclusion": "" }
+    ]
+  },
+  {
+    "number": 203,
+    "title": "feat: third step",
+    "headRefName": "feat/third",
+    "baseRefName": "feat/second",
+    "isDraft": true,
+    "statusCheckRollup": [
+      { "__typename": "CheckRun", "name": "build", "status": "COMPLETED", "conclusion": "FAILURE" }
+    ]
+  },
+  {
+    "number": 205,
+    "title": "feat: sibling step",
+    "headRefName": "feat/sibling",
+    "baseRefName": "feat/base",
+    "isDraft": false,
+    "statusCheckRollup": []
+  }
+]

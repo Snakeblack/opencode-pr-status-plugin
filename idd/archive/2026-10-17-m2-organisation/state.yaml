@@ -1,0 +1,451 @@
+{
+  "schema": "idd-state/v1",
+  "change": "m2-organisation",
+  "mode": "idd",
+  "status": "closed",
+  "intent": {
+    "request": "M2 - organización y pulido. Agrupar stacks: detectar PRs encadenados (base = head de otro PR) y agruparlos/indentarlos en la lista.",
+    "kind": "feature",
+    "summary": "M2 organisation and polish: group chained open pull requests (a PR base equal to another PR head) under their root in the sidebar panel, children indented base to tip, with the agreed scanning presentation; no notifications, no new actions",
+    "acceptance": "Loaded in the host TUI with open PRs that form chains, the panel shows each chain under its root PR, its children indented base-to-tip, and every row keeps its state mark and CI state; with no chains the list keeps the current number order and look; panel resilience (per-kind failure copy, last good list) is unchanged."
+  },
+  "facts": {
+    "coverage": [
+      {
+        "category": "inputs",
+        "question": "¿Se mantiene el límite de 50 PRs aunque una cadena pueda quedar cortada si su base cae fuera, o se sube?"
+      },
+      {
+        "category": "uniqueness",
+        "question": "Si dos PRs abiertos comparten la misma rama head, ¿el hijo se engancha al de número más bajo o queda sin agrupar?"
+      },
+      {
+        "category": "persistence",
+        "cite": {
+          "kind": "path",
+          "path": "docs/architecture/decisions/0002-no-persisted-state.md",
+          "line": 1
+        }
+      },
+      {
+        "category": "copy",
+        "question": "¿Los títulos se recortan a una línea para escanear mejor o se mantiene el wrap a varias líneas actual?"
+      },
+      {
+        "category": "url-state",
+        "cite": {
+          "kind": "path",
+          "path": "src/plugin.ts",
+          "line": 21
+        }
+      },
+      {
+        "category": "accessibility",
+        "question": "¿Cómo se ve la jerarquía: sangría por nivel de profundidad o un solo nivel, y con conector (└─) o solo espacios?"
+      },
+      {
+        "category": "errors",
+        "cite": {
+          "kind": "path",
+          "path": "src/panel.tsx",
+          "line": 24
+        }
+      }
+    ]
+  },
+  "plan": {
+    "paths": [
+      "src/client/gh.ts",
+      "src/domain/aggregate.ts",
+      "src/domain/stacks.ts",
+      "src/domain/types.ts",
+      "src/panel.tsx",
+      "test/aggregate.test.ts",
+      "test/fixtures/chained-prs.json",
+      "test/fixtures/pr-list.json",
+      "test/gh-client.test.ts",
+      "test/stacks.test.ts"
+    ],
+    "work_units": 3,
+    "decision": true,
+    "operations": []
+  },
+  "signals": [
+    {
+      "id": "always",
+      "reason": "every change with a resolved intent",
+      "source": "declaration"
+    },
+    {
+      "id": "strict-tdd",
+      "reason": "the project declares strict_tdd",
+      "source": "declaration"
+    },
+    {
+      "id": "multi-unit-or-decision",
+      "reason": "declared 3 work units",
+      "source": "declaration"
+    },
+    {
+      "id": "security-boundary",
+      "reason": "security boundary: touches src/client/gh.ts (matches src/client/**)",
+      "source": "declaration"
+    },
+    {
+      "id": "adr-or-quality-attribute",
+      "reason": "declared ADR 0001, 0002, 0003 and quality scenario fresh-ci-state, panel-resilience, visual-ci-state-legible",
+      "source": "declaration"
+    }
+  ],
+  "impacts": [
+    {
+      "kind": "adr",
+      "id": "0001",
+      "impact": "conforms",
+      "reason": "No new platform path: the change keeps the single local gh invocation and adds no HTTP client or credential read; the call now filters to the user's own pull requests (--author @me)."
+    },
+    {
+      "kind": "adr",
+      "id": "0002",
+      "impact": "conforms",
+      "reason": "Stack grouping is computed in memory on every refresh; the change writes nothing and stores no state host-side."
+    },
+    {
+      "kind": "adr",
+      "id": "0003",
+      "impact": "conforms",
+      "reason": "Titles and branches still normalise once inside toPrViews before rendering; the stack matcher compares raw branch names internally and never renders them."
+    },
+    {
+      "kind": "scenario",
+      "id": "fresh-ci-state",
+      "impact": "conforms",
+      "reason": "The refresh loop is untouched: the panel still reflects CI state changes without manual reload."
+    },
+    {
+      "kind": "scenario",
+      "id": "panel-resilience",
+      "impact": "conforms",
+      "reason": "Failure handling is unchanged (per-kind copy, warning colour for transient kinds, last good list kept); the author filter narrows the read without adding failure paths."
+    },
+    {
+      "kind": "scenario",
+      "id": "visual-ci-state-legible",
+      "impact": "conforms",
+      "reason": "The panel groups chains under their root with a per-level indent and a non-colour connector, keeps the per-row state mark and clips long titles to one line, so the list stays readable at a glance in the host theme."
+    }
+  ],
+  "attestations": [
+    {
+      "kind": "adr",
+      "id": "0001",
+      "evidence": "Scanned src/ and test/: no HTTP client (fetch/undici/axios/octokit/node:https), no credential read (no GITHUB_TOKEN or gh auth token anywhere); the only platform path is the single execFile(\"gh\", ...) in src/client/gh.ts, fixed argv, project cwd. Runtime dependency: @opencode/plugin only.",
+      "recorded_at": "2026-10-17T18:37:00.527Z"
+    },
+    {
+      "kind": "adr",
+      "id": "0002",
+      "evidence": "Scanned src/: no filesystem writes (writeFile/appendFile/createWriteStream/mkdir), no localStorage/sessionStorage or host storage calls. Stack grouping is computed in memory on every refresh and discarded with it.",
+      "recorded_at": "2026-10-17T18:37:00.582Z"
+    },
+    {
+      "kind": "adr",
+      "id": "0003",
+      "evidence": "test/safe-text.test.ts covers ANSI escapes, C0/C1 control characters, zero-width and bidi direction controls and surrogate-safe clamping; aggregate tests assert titles and branches arrive normalised from the single toPrViews boundary. No raw platform text reaches the renderer.",
+      "recorded_at": "2026-10-17T18:37:00.637Z"
+    }
+  ],
+  "obligations": [
+    {
+      "id": "checks-pass",
+      "signal": "always",
+      "status": "satisfied",
+      "evidence": [
+        "ev-2"
+      ]
+    },
+    {
+      "id": "tdd-red-green",
+      "signal": "strict-tdd",
+      "status": "satisfied",
+      "evidence": [
+        "ev-1"
+      ]
+    },
+    {
+      "id": "living-doc",
+      "signal": "multi-unit-or-decision",
+      "status": "satisfied",
+      "evidence": [
+        "ev-5"
+      ]
+    },
+    {
+      "id": "trust-review",
+      "signal": "security-boundary",
+      "status": "satisfied",
+      "evidence": [
+        "ev-4"
+      ]
+    },
+    {
+      "id": "adr-impact-declaration",
+      "signal": "adr-or-quality-attribute",
+      "status": "satisfied",
+      "evidence": [
+        "ev-3"
+      ]
+    }
+  ],
+  "gates": [
+    {
+      "id": "open-facts",
+      "status": "resolved",
+      "answer": "1) Límite: mantener 50 pero que solo se vea tus PRs, los de otros no, esta enfocado para lo que tu haces, no los prs que han hecho otros. 2) Misma head: al de número más bajo. 3) Títulos: una línea, recortado. 4) Jerarquía: sangría por nivel + conector └─.",
+      "source": "user"
+    }
+  ],
+  "evidence": [
+    {
+      "id": "ev-1",
+      "kind": "tdd-red-green",
+      "obligation": "tdd-red-green",
+      "recorded_at": "2026-10-17T18:27:37.351Z",
+      "detail": {
+        "red": "run-1",
+        "green": "run-2"
+      }
+    },
+    {
+      "id": "ev-2",
+      "kind": "check-run",
+      "obligation": "checks-pass",
+      "recorded_at": "2026-10-17T18:36:49.143Z",
+      "detail": {
+        "tree": "sha256:84706ffd978c76dc281e97d3db19a26703f79a60abf931fe521f212628e28a2a",
+        "runs": [
+          "run-3",
+          "run-4",
+          "run-5"
+        ]
+      }
+    },
+    {
+      "id": "ev-3",
+      "kind": "adr-impact-declaration",
+      "obligation": "adr-impact-declaration",
+      "recorded_at": "2026-10-17T18:36:49.143Z",
+      "detail": {
+        "refs": [
+          "adr:0001 conforms",
+          "adr:0002 conforms",
+          "adr:0003 conforms",
+          "scenario:fresh-ci-state conforms",
+          "scenario:panel-resilience conforms",
+          "scenario:visual-ci-state-legible conforms"
+        ],
+        "records": []
+      }
+    },
+    {
+      "id": "ev-4",
+      "kind": "frozen-review",
+      "obligation": "trust-review",
+      "recorded_at": "2026-10-17T18:40:51.205Z",
+      "detail": {
+        "lineage_id": "sha256:9b0d9f0eeb0d4c4bd95afce80526f3ab6b1b7568900639ca6a965c52b66deef8",
+        "candidate_id": "sha256:145b204352edaa3ce9caf15a283a5d5ddec068ded584f2d4e84bfc9d5c32b621",
+        "candidate_tree": "8a90ead81af193cbd9459535193bcdf1bc28326d",
+        "findings_digest": "sha256:4d59fd4aa8eefff6dbf7cd085cc100ee928217573658f8bbc301aa4a3f1adc0f"
+      }
+    },
+    {
+      "id": "ev-5",
+      "kind": "living-doc-current",
+      "obligation": "living-doc",
+      "recorded_at": "2026-10-17T18:42:59.369Z"
+    }
+  ],
+  "base": "5c21e5cf5024585144b18e0ef4b0d96a63c6924c",
+  "runs": [
+    {
+      "id": "run-1",
+      "purpose": "tdd-red-green",
+      "unit": "stacks",
+      "command": "npm test",
+      "exit_code": 1,
+      "output_sha256": "sha256:b4f3002dc818704531ef9be7a93341847e28634481bec3991fd1a063846e95e6",
+      "tree": "sha256:d3a05936edae17b98716d7e90a6a6356fe92bacdcc2c7a762ca6d4705de23d2a",
+      "recorded_at": "2026-10-17T18:27:13.052Z"
+    },
+    {
+      "id": "run-2",
+      "purpose": "tdd-red-green",
+      "unit": "stacks",
+      "command": "npm test",
+      "exit_code": 0,
+      "output_sha256": "sha256:6d62b526d88b841afbf16648664f165ed656d4110592f10a26e7554c6cae4c10",
+      "tree": "sha256:b1b2aa3c854d40eeebbe10e4e1ff02be7cc266d8a9e7b462c020e0a04f774919",
+      "recorded_at": "2026-10-17T18:27:37.351Z"
+    },
+    {
+      "id": "run-3",
+      "purpose": "checks",
+      "name": "test",
+      "command": "npm test",
+      "exit_code": 0,
+      "output_sha256": "sha256:1c24cd6cbef4cc7657f7d86f471f5fb69a3597aed8d675101f655fa252e6f3d7",
+      "tree": "sha256:84706ffd978c76dc281e97d3db19a26703f79a60abf931fe521f212628e28a2a",
+      "recorded_at": "2026-10-17T18:36:49.143Z"
+    },
+    {
+      "id": "run-4",
+      "purpose": "checks",
+      "name": "lint",
+      "command": "npm run lint",
+      "exit_code": 0,
+      "output_sha256": "sha256:14201ab5a8b387a1828d327e924881d66dfd8a9f42dca9e69ee42740fc6aedb1",
+      "tree": "sha256:84706ffd978c76dc281e97d3db19a26703f79a60abf931fe521f212628e28a2a",
+      "recorded_at": "2026-10-17T18:36:49.143Z"
+    },
+    {
+      "id": "run-5",
+      "purpose": "checks",
+      "name": "typecheck",
+      "command": "npm run typecheck",
+      "exit_code": 0,
+      "output_sha256": "sha256:13e39dac03db02e115d4dd9b3352dedb20f12930568fb6593c57314533f974dd",
+      "tree": "sha256:84706ffd978c76dc281e97d3db19a26703f79a60abf931fe521f212628e28a2a",
+      "recorded_at": "2026-10-17T18:36:49.143Z"
+    }
+  ],
+  "reviews": [
+    {
+      "schema_version": 2,
+      "lineage_id": "sha256:9b0d9f0eeb0d4c4bd95afce80526f3ab6b1b7568900639ca6a965c52b66deef8",
+      "generation": 1,
+      "predecessor_lineage_id": null,
+      "migration": null,
+      "recovery": null,
+      "revision": 3,
+      "status": "approved",
+      "genesis": {
+        "candidate": {
+          "projection": "idd-tree-diff/v1",
+          "base_tree": "1e8b99e747d806a1207f61bdd402379de05a94e7",
+          "candidate_tree": "8a90ead81af193cbd9459535193bcdf1bc28326d",
+          "paths": [
+            "src/client/gh.ts",
+            "src/domain/aggregate.ts",
+            "src/domain/stacks.ts",
+            "src/domain/types.ts",
+            "src/panel.tsx",
+            "test/aggregate.test.ts",
+            "test/fixtures/chained-prs.json",
+            "test/fixtures/pr-list.json",
+            "test/gh-client.test.ts",
+            "test/stacks.test.ts"
+          ],
+          "diff_hash": "sha256:46a32287a8267740003210045183b3c7bfe4954af360f5cfcc7540badf8aa1c8",
+          "paths_digest": "sha256:9f5939729b718c6fcb54f37817c77623c15e565df16e235a93e1584cbc33c721",
+          "authored_lines": 374,
+          "original_changed_lines": 396
+        },
+        "candidate_id": "sha256:145b204352edaa3ce9caf15a283a5d5ddec068ded584f2d4e84bfc9d5c32b621",
+        "paths": [
+          "src/client/gh.ts",
+          "src/domain/aggregate.ts",
+          "src/domain/stacks.ts",
+          "src/domain/types.ts",
+          "src/panel.tsx",
+          "test/aggregate.test.ts",
+          "test/fixtures/chained-prs.json",
+          "test/fixtures/pr-list.json",
+          "test/gh-client.test.ts",
+          "test/stacks.test.ts"
+        ],
+        "classification": "high-risk",
+        "selected_domains": [
+          "trust"
+        ],
+        "evidence_fingerprint": "8a90ead81af193cbd9459535193bcdf1bc28326d",
+        "original_changed_lines": 396,
+        "authored_lines": 374
+      },
+      "current_candidate_id": "sha256:145b204352edaa3ce9caf15a283a5d5ddec068ded584f2d4e84bfc9d5c32b621",
+      "current_candidate": {
+        "projection": "idd-tree-diff/v1",
+        "base_tree": "1e8b99e747d806a1207f61bdd402379de05a94e7",
+        "candidate_tree": "8a90ead81af193cbd9459535193bcdf1bc28326d",
+        "paths": [
+          "src/client/gh.ts",
+          "src/domain/aggregate.ts",
+          "src/domain/stacks.ts",
+          "src/domain/types.ts",
+          "src/panel.tsx",
+          "test/aggregate.test.ts",
+          "test/fixtures/chained-prs.json",
+          "test/fixtures/pr-list.json",
+          "test/gh-client.test.ts",
+          "test/stacks.test.ts"
+        ],
+        "diff_hash": "sha256:46a32287a8267740003210045183b3c7bfe4954af360f5cfcc7540badf8aa1c8",
+        "paths_digest": "sha256:9f5939729b718c6fcb54f37817c77623c15e565df16e235a93e1584cbc33c721",
+        "authored_lines": 374,
+        "original_changed_lines": 396
+      },
+      "lenses": {
+        "trust": {
+          "selected": true,
+          "status": "completed",
+          "request_id": "m2-organisation:lens-start:1:0",
+          "result_digest": "sha256:0fa38eeaca8882e0d194fd5ba5d8378917d98e795204f8f7a9dfdb78f111f3cc",
+          "result": {
+            "findings": []
+          },
+          "operation": null,
+          "result_request_id": "m2-organisation:lens-result:1:1"
+        },
+        "runtime": {
+          "selected": false,
+          "status": "skipped",
+          "request_id": null,
+          "result_digest": null,
+          "result": null,
+          "operation": null
+        },
+        "evolution": {
+          "selected": false,
+          "status": "skipped",
+          "request_id": null,
+          "result_digest": null,
+          "result": null,
+          "operation": null
+        },
+        "efficiency": {
+          "selected": false,
+          "status": "skipped",
+          "request_id": null,
+          "result_digest": null,
+          "result": null,
+          "operation": null
+        }
+      },
+      "findings": [],
+      "findings_digest": "sha256:4d59fd4aa8eefff6dbf7cd085cc100ee928217573658f8bbc301aa4a3f1adc0f",
+      "correction_budget": {
+        "limit_lines": 198,
+        "used_lines": 0,
+        "failed_attempts": 0,
+        "max_failed_attempts": 3
+      },
+      "correction_history": [],
+      "validation_history": [],
+      "follow_ups": [],
+      "pending_operation": null,
+      "pending_correction": null,
+      "terminal_reason": "no-unresolved-blocking-findings"
+    }
+  ],
+  "closed_at": "2026-10-17T18:42:59.369Z"
+}

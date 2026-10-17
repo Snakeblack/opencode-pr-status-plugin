@@ -16,12 +16,14 @@ const GH_ARGS = [
   "open",
   "--limit",
   "50",
+  "--author",
+  "@me",
   "--json",
-  "number,title,headRefName,isDraft,statusCheckRollup",
+  "number,title,headRefName,baseRefName,isDraft,statusCheckRollup",
 ];
 
 describe("createGhClient", () => {
-  it("reads the open pull requests with a single gh call", async () => {
+  it("reads the user's own open pull requests with a single gh call", async () => {
     const exec = vi.fn(succeed(fixture("pr-list.json")));
     const result = await createGhClient(exec).listOpenPrs("/repo");
 
@@ -29,7 +31,7 @@ describe("createGhClient", () => {
     expect(exec).toHaveBeenCalledWith("gh", GH_ARGS, { cwd: "/repo" });
     expect(result).toEqual({
       ok: true,
-      prs: [expect.objectContaining({ number: 354, ci: "running" })],
+      prs: [expect.objectContaining({ number: 356, ci: "running" })],
     });
   });
 
