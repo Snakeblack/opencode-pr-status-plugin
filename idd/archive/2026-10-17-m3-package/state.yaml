@@ -1,0 +1,749 @@
+{
+  "schema": "idd-state/v1",
+  "change": "m3-package",
+  "mode": "idd",
+  "status": "closed",
+  "intent": {
+    "request": "M3 — paquete publicable: README, LICENSE (MIT + Commons Clause v1.0), CI de publicación con checks, política SemVer y rango de hosts soportados; revisar el advisory crítico de seroval y verificar la instalación del paquete publicado.",
+    "kind": "docs",
+    "summary": "M3 publishable package: README and LICENSE (MIT + Commons Clause v1.0), CI that runs the checks and publishes versioned releases, SemVer policy, declared supported host range, and a verified install of the packed artifact in the host",
+    "acceptance": "The repository carries README, LICENSE (MIT + Commons Clause v1.0), the SemVer policy and the declared supported OpenCode V2 range; installing the packed artifact into a clean OpenCode V2 setup (plugins entry) loads the panel in the host TUI; test/lint/typecheck stay green locally and the CI workflow runs them on the repository remote, with the publish path to the npm artifact configured for a versioned release."
+  },
+  "facts": {
+    "open": [
+      "El repositorio no tiene remoto y el CI necesita uno: ¿creo el repositorio en GitHub como Snakeblack/opencode-pr-status-plugin y empujo main con gh, y sería público o privado?",
+      "¿Publicamos de verdad en npm en este cambio (necesitarías iniciar sesión con npm login o un token) o preparo la publicación y verifico el paquete con npm pack sin subirlo todavía?",
+      "¿Nombre del paquete sin scope opencode-pr-status-plugin (está libre en npm) o con scope, por ejemplo @snakeblack/opencode-pr-status-plugin?",
+      "¿La publicación en CI se dispara creando un release o tag vX.Y.Z en GitHub (con NPM_TOKEN como secret) o prefieres publicar a mano con npm publish y dejar CI solo con los checks?",
+      "El advisory crítico de seroval (llega vía @opencode/plugin → @opentui/solid → solid-js) sigue sin arreglo disponible: ¿lo aceptamos y lo documentamos en el README, o bloqueamos la publicación hasta que upstream lo arregle?",
+      "¿Empiezo la numeración pública en 0.1.0 y declaro soporte OpenCode V2 con @opencode/plugin ^2.0.32 (probado con 2.0.32), o prefieres otro criterio de versión o de rango?",
+      "¿README en inglés, como el resto de la documentación del repositorio, o en español?",
+      "Antes de publicar toca revisar el supuesto de foundation «solo el autor usa el plugin» (su disparador de revisión es justo la publicación en npm): ¿confirmas que los usuarios secundarios (cualquier usuario de OpenCode que instale el plugin) entran en el alcance?"
+    ]
+  },
+  "plan": {
+    "paths": [
+      ".github/workflows/ci.yml",
+      ".github/workflows/publish.yml",
+      ".gitignore",
+      "LICENSE",
+      "README.md",
+      "docs/architecture/knowledge-map.yaml",
+      "docs/product/functional-scope.md",
+      "idd/config.yaml",
+      "package-lock.json",
+      "package.json",
+      "scripts/build.mjs",
+      "src/panel.tsx",
+      "src/tui.tsx",
+      "test/package.test.ts"
+    ],
+    "work_units": 4,
+    "decision": true,
+    "operations": []
+  },
+  "signals": [
+    {
+      "id": "always",
+      "reason": "every change with a resolved intent",
+      "source": "declaration"
+    },
+    {
+      "id": "multi-unit-or-decision",
+      "reason": "declared 3 work units",
+      "source": "declaration"
+    },
+    {
+      "id": "public-contract",
+      "reason": "public contract: touches src/tui.tsx (published by package.json)",
+      "source": "diff"
+    },
+    {
+      "id": "security-boundary",
+      "reason": "security boundary: touches .github/workflows/ci.yml and 1 more (matches .github/workflows/**)",
+      "source": "diff"
+    },
+    {
+      "id": "persistent-data",
+      "reason": "persistent data: scripts/build.mjs adds writeFile",
+      "source": "diff"
+    }
+  ],
+  "obligations": [
+    {
+      "id": "checks-pass",
+      "signal": "always",
+      "status": "satisfied",
+      "evidence": [
+        "ev-11"
+      ]
+    },
+    {
+      "id": "living-doc",
+      "signal": "multi-unit-or-decision",
+      "status": "satisfied",
+      "evidence": [
+        "ev-14"
+      ]
+    },
+    {
+      "id": "contract-spec-and-test",
+      "signal": "public-contract",
+      "status": "satisfied",
+      "evidence": [
+        "ev-12"
+      ]
+    },
+    {
+      "id": "trust-review",
+      "signal": "security-boundary",
+      "status": "satisfied",
+      "evidence": [
+        "ev-10"
+      ]
+    },
+    {
+      "id": "migration-compat-and-test",
+      "signal": "persistent-data",
+      "status": "satisfied",
+      "evidence": [
+        "ev-13"
+      ]
+    }
+  ],
+  "gates": [
+    {
+      "id": "open-facts",
+      "status": "resolved",
+      "answer": "1) Remoto: sí, crear repositorio público Snakeblack/opencode-pr-status-plugin y empujar main con gh. 2) Publicar: preparar y verificar con npm pack, sin publicar todavía. 3) Nombre: sin scope, opencode-pr-status-plugin. 4) Disparador: release/tag vX.Y.Z en GitHub con NPM_TOKEN como secret. 5) seroval: aceptar y documentar el advisory en el README. 6) Versión: empezar en 0.1.0; soporte OpenCode V2 con @opencode/plugin ^2.0.32 (probado con 2.0.32). 7) README en inglés. 8) Usuarios secundarios entran en el alcance.",
+      "source": "user"
+    }
+  ],
+  "evidence": [
+    {
+      "id": "ev-1",
+      "kind": "check-run",
+      "obligation": "checks-pass",
+      "recorded_at": "2026-10-17T19:37:09.668Z",
+      "detail": {
+        "tree": "sha256:50e2f24802a7c5f40690f9e1a35e3f09a436d430dd9b8e821f25b9f142e84465",
+        "runs": [
+          "run-1",
+          "run-2",
+          "run-3"
+        ]
+      }
+    },
+    {
+      "id": "ev-2",
+      "kind": "contract-spec-and-test",
+      "obligation": "contract-spec-and-test",
+      "recorded_at": "2026-10-17T19:37:09.668Z",
+      "detail": {
+        "tree": "sha256:50e2f24802a7c5f40690f9e1a35e3f09a436d430dd9b8e821f25b9f142e84465",
+        "check": "ev-1",
+        "documents": [
+          "src/tui.tsx"
+        ],
+        "tests": [
+          "test/package.test.ts"
+        ]
+      }
+    },
+    {
+      "id": "ev-3",
+      "kind": "frozen-review",
+      "obligation": "trust-review",
+      "recorded_at": "2026-10-17T19:37:31.172Z",
+      "detail": {
+        "lineage_id": "sha256:f7cde5810adcab5dcffc51b9625ad977c90e77e7889bf6cd196822093d8d1b4c",
+        "candidate_id": "sha256:f8ca4c57c6dd9f2d9b7a5bee6ec0293438b0652a94a8105aa3d8ec50b7ef9165",
+        "candidate_tree": "8315dec87ab9e25ae5e85f6c38b8d629c1c5ad20",
+        "findings_digest": "sha256:4d59fd4aa8eefff6dbf7cd085cc100ee928217573658f8bbc301aa4a3f1adc0f"
+      }
+    },
+    {
+      "id": "ev-4",
+      "kind": "check-run",
+      "obligation": "checks-pass",
+      "recorded_at": "2026-10-17T23:13:28.492Z",
+      "detail": {
+        "tree": "sha256:918cc61ee0c74004543c73e7a3e9d23716c637a650990c97d587900155e39c23",
+        "runs": [
+          "run-4",
+          "run-5",
+          "run-6"
+        ]
+      }
+    },
+    {
+      "id": "ev-5",
+      "kind": "migration-test",
+      "obligation": "migration-compat-and-test",
+      "recorded_at": "2026-10-17T23:14:20.253Z",
+      "detail": {
+        "run": "run-7",
+        "tree": "sha256:354e1c6dc7cfe36dd241d2fb09e634a64897294fa47b36d93dddbdf7e4457f0b",
+        "plan": "dist/ is generated at build/prepare time from src/; no persistent user data or schema exists"
+      }
+    },
+    {
+      "id": "ev-6",
+      "kind": "check-run",
+      "obligation": "checks-pass",
+      "recorded_at": "2026-10-17T23:14:23.121Z",
+      "detail": {
+        "tree": "sha256:918cc61ee0c74004543c73e7a3e9d23716c637a650990c97d587900155e39c23",
+        "runs": [
+          "run-8",
+          "run-9",
+          "run-10"
+        ]
+      }
+    },
+    {
+      "id": "ev-7",
+      "kind": "migration-test",
+      "obligation": "migration-compat-and-test",
+      "recorded_at": "2026-10-17T23:14:54.198Z",
+      "detail": {
+        "run": "run-11",
+        "tree": "sha256:ff5de903b472577b850814a83745e7e22e24d4a948b961e124d45d794bfb1236",
+        "plan": "dist/ is generated at build/prepare time from src/; no persistent user data or schema exists"
+      }
+    },
+    {
+      "id": "ev-8",
+      "kind": "check-run",
+      "obligation": "checks-pass",
+      "recorded_at": "2026-10-17T23:14:57.065Z",
+      "detail": {
+        "tree": "sha256:a026bd27edc50b586125a8583fd2eb740565619c9c8975422aecfa3eafc9de1c",
+        "runs": [
+          "run-12",
+          "run-13",
+          "run-14"
+        ]
+      }
+    },
+    {
+      "id": "ev-9",
+      "kind": "contract-spec-and-test",
+      "obligation": "contract-spec-and-test",
+      "recorded_at": "2026-10-17T23:14:57.065Z",
+      "detail": {
+        "tree": "sha256:a026bd27edc50b586125a8583fd2eb740565619c9c8975422aecfa3eafc9de1c",
+        "check": "ev-8",
+        "documents": [
+          "src/tui.tsx"
+        ],
+        "tests": [
+          "test/package.test.ts"
+        ]
+      }
+    },
+    {
+      "id": "ev-10",
+      "kind": "frozen-review",
+      "obligation": "trust-review",
+      "recorded_at": "2026-10-17T23:17:11.284Z",
+      "detail": {
+        "lineage_id": "sha256:f4c684ca0f90256826c5d7ba27b33496a5ceaa9a524de8b13d3cda34427c32c6",
+        "candidate_id": "sha256:02be1b033286acd957a7d1ceb272dc8e2248e6f29de3f96bbbcafd8dfb844be1",
+        "candidate_tree": "7fa2872d7efbb3ec8f5682531b79f4e7b59bdca4",
+        "findings_digest": "sha256:4d59fd4aa8eefff6dbf7cd085cc100ee928217573658f8bbc301aa4a3f1adc0f"
+      }
+    },
+    {
+      "id": "ev-11",
+      "kind": "check-run",
+      "obligation": "checks-pass",
+      "recorded_at": "2026-10-17T23:45:42.932Z",
+      "detail": {
+        "tree": "sha256:b917aaa39e9b1d4f03efbe33e3103273363e9c8879160c8ae73d9e2bfa2c7efb",
+        "runs": [
+          "run-15",
+          "run-16",
+          "run-17"
+        ]
+      }
+    },
+    {
+      "id": "ev-12",
+      "kind": "contract-spec-and-test",
+      "obligation": "contract-spec-and-test",
+      "recorded_at": "2026-10-17T23:45:42.932Z",
+      "detail": {
+        "tree": "sha256:b917aaa39e9b1d4f03efbe33e3103273363e9c8879160c8ae73d9e2bfa2c7efb",
+        "check": "ev-11",
+        "documents": [
+          "src/tui.tsx"
+        ],
+        "tests": [
+          "test/package.test.ts"
+        ]
+      }
+    },
+    {
+      "id": "ev-13",
+      "kind": "migration-test",
+      "obligation": "migration-compat-and-test",
+      "recorded_at": "2026-10-17T23:45:48.296Z",
+      "detail": {
+        "run": "run-18",
+        "tree": "sha256:d057111bdc92bef3b651324a16055ab9b839640f8c681ce022d693c71c77ae91",
+        "plan": "dist/ is generated at build/prepare time from src/; no persistent user data or schema exists"
+      }
+    },
+    {
+      "id": "ev-14",
+      "kind": "living-doc-current",
+      "obligation": "living-doc",
+      "recorded_at": "2026-10-17T23:45:48.349Z"
+    }
+  ],
+  "base": "e8f5ab3317ec7a1ae7ace8a46e15242e44afb34f",
+  "runs": [
+    {
+      "id": "run-1",
+      "purpose": "checks",
+      "name": "test",
+      "command": "npm test",
+      "exit_code": 0,
+      "output_sha256": "sha256:3ef097c5160a52564beb9bb8b28811f4b5750f7b1050e693113f7084df7dc968",
+      "tree": "sha256:50e2f24802a7c5f40690f9e1a35e3f09a436d430dd9b8e821f25b9f142e84465",
+      "recorded_at": "2026-10-17T19:37:09.668Z"
+    },
+    {
+      "id": "run-2",
+      "purpose": "checks",
+      "name": "lint",
+      "command": "npm run lint",
+      "exit_code": 0,
+      "output_sha256": "sha256:98b14794f4c0b31edd702b71200b12c4af255ab149e531c56b94b1d1232e4900",
+      "tree": "sha256:50e2f24802a7c5f40690f9e1a35e3f09a436d430dd9b8e821f25b9f142e84465",
+      "recorded_at": "2026-10-17T19:37:09.668Z"
+    },
+    {
+      "id": "run-3",
+      "purpose": "checks",
+      "name": "typecheck",
+      "command": "npm run typecheck",
+      "exit_code": 0,
+      "output_sha256": "sha256:b41ac9880a7c3cc289ace37e59c130df3af2d0be0c8d2d40080be90a411c0791",
+      "tree": "sha256:50e2f24802a7c5f40690f9e1a35e3f09a436d430dd9b8e821f25b9f142e84465",
+      "recorded_at": "2026-10-17T19:37:09.668Z"
+    },
+    {
+      "id": "run-4",
+      "purpose": "checks",
+      "name": "test",
+      "command": "npm test",
+      "exit_code": 0,
+      "output_sha256": "sha256:b6fa9fe7569a2de7d49e0355ceb0b7e319180278d7c429436978dec75a56673c",
+      "tree": "sha256:918cc61ee0c74004543c73e7a3e9d23716c637a650990c97d587900155e39c23",
+      "recorded_at": "2026-10-17T23:13:28.492Z"
+    },
+    {
+      "id": "run-5",
+      "purpose": "checks",
+      "name": "lint",
+      "command": "npm run lint",
+      "exit_code": 0,
+      "output_sha256": "sha256:a1ed83040e6a5efef3c1694f211cc9d5cb062910849698d474a94b169a875067",
+      "tree": "sha256:918cc61ee0c74004543c73e7a3e9d23716c637a650990c97d587900155e39c23",
+      "recorded_at": "2026-10-17T23:13:28.492Z"
+    },
+    {
+      "id": "run-6",
+      "purpose": "checks",
+      "name": "typecheck",
+      "command": "npm run typecheck",
+      "exit_code": 0,
+      "output_sha256": "sha256:b41ac9880a7c3cc289ace37e59c130df3af2d0be0c8d2d40080be90a411c0791",
+      "tree": "sha256:918cc61ee0c74004543c73e7a3e9d23716c637a650990c97d587900155e39c23",
+      "recorded_at": "2026-10-17T23:13:28.492Z"
+    },
+    {
+      "id": "run-7",
+      "purpose": "migration-test",
+      "command": "npx vitest run test/package.test.ts",
+      "exit_code": 0,
+      "output_sha256": "sha256:c6f5bc718a0321c6258d45b65777599facc87f2df02d0185d884cee71138995d",
+      "tree": "sha256:354e1c6dc7cfe36dd241d2fb09e634a64897294fa47b36d93dddbdf7e4457f0b",
+      "recorded_at": "2026-10-17T23:14:20.253Z"
+    },
+    {
+      "id": "run-8",
+      "purpose": "checks",
+      "name": "test",
+      "command": "npm test",
+      "exit_code": 0,
+      "output_sha256": "sha256:9eaff8e6da34ac58c6a3421d3655a56c57cfcd6b1b6d8a3bad718dd2cf833fce",
+      "tree": "sha256:918cc61ee0c74004543c73e7a3e9d23716c637a650990c97d587900155e39c23",
+      "recorded_at": "2026-10-17T23:14:23.121Z"
+    },
+    {
+      "id": "run-9",
+      "purpose": "checks",
+      "name": "lint",
+      "command": "npm run lint",
+      "exit_code": 0,
+      "output_sha256": "sha256:a1ed83040e6a5efef3c1694f211cc9d5cb062910849698d474a94b169a875067",
+      "tree": "sha256:918cc61ee0c74004543c73e7a3e9d23716c637a650990c97d587900155e39c23",
+      "recorded_at": "2026-10-17T23:14:23.121Z"
+    },
+    {
+      "id": "run-10",
+      "purpose": "checks",
+      "name": "typecheck",
+      "command": "npm run typecheck",
+      "exit_code": 0,
+      "output_sha256": "sha256:b41ac9880a7c3cc289ace37e59c130df3af2d0be0c8d2d40080be90a411c0791",
+      "tree": "sha256:918cc61ee0c74004543c73e7a3e9d23716c637a650990c97d587900155e39c23",
+      "recorded_at": "2026-10-17T23:14:23.121Z"
+    },
+    {
+      "id": "run-11",
+      "purpose": "migration-test",
+      "command": "npx vitest run test/package.test.ts",
+      "exit_code": 0,
+      "output_sha256": "sha256:28a1628f82b72adc2849e014836fcd4b5aae829e251890fa088ee830dd7a9e2f",
+      "tree": "sha256:ff5de903b472577b850814a83745e7e22e24d4a948b961e124d45d794bfb1236",
+      "recorded_at": "2026-10-17T23:14:54.198Z"
+    },
+    {
+      "id": "run-12",
+      "purpose": "checks",
+      "name": "test",
+      "command": "npm test",
+      "exit_code": 0,
+      "output_sha256": "sha256:d0e47a6e24fb85d0d0accbf0eef47171836c548ef86faaf3958b4a6ca2d8f95b",
+      "tree": "sha256:a026bd27edc50b586125a8583fd2eb740565619c9c8975422aecfa3eafc9de1c",
+      "recorded_at": "2026-10-17T23:14:57.065Z"
+    },
+    {
+      "id": "run-13",
+      "purpose": "checks",
+      "name": "lint",
+      "command": "npm run lint",
+      "exit_code": 0,
+      "output_sha256": "sha256:ec2606110cefda455aa4c0392bd69f39fa6bfd933f593da2f472d0730c36fd51",
+      "tree": "sha256:a026bd27edc50b586125a8583fd2eb740565619c9c8975422aecfa3eafc9de1c",
+      "recorded_at": "2026-10-17T23:14:57.065Z"
+    },
+    {
+      "id": "run-14",
+      "purpose": "checks",
+      "name": "typecheck",
+      "command": "npm run typecheck",
+      "exit_code": 0,
+      "output_sha256": "sha256:b41ac9880a7c3cc289ace37e59c130df3af2d0be0c8d2d40080be90a411c0791",
+      "tree": "sha256:a026bd27edc50b586125a8583fd2eb740565619c9c8975422aecfa3eafc9de1c",
+      "recorded_at": "2026-10-17T23:14:57.065Z"
+    },
+    {
+      "id": "run-15",
+      "purpose": "checks",
+      "name": "test",
+      "command": "npm test",
+      "exit_code": 0,
+      "output_sha256": "sha256:a15480ff38f46ad92e067540971ca480fb7034758fea6ff4f43cc05d37219695",
+      "tree": "sha256:b917aaa39e9b1d4f03efbe33e3103273363e9c8879160c8ae73d9e2bfa2c7efb",
+      "recorded_at": "2026-10-17T23:45:42.932Z"
+    },
+    {
+      "id": "run-16",
+      "purpose": "checks",
+      "name": "lint",
+      "command": "npm run lint",
+      "exit_code": 0,
+      "output_sha256": "sha256:ec2606110cefda455aa4c0392bd69f39fa6bfd933f593da2f472d0730c36fd51",
+      "tree": "sha256:b917aaa39e9b1d4f03efbe33e3103273363e9c8879160c8ae73d9e2bfa2c7efb",
+      "recorded_at": "2026-10-17T23:45:42.932Z"
+    },
+    {
+      "id": "run-17",
+      "purpose": "checks",
+      "name": "typecheck",
+      "command": "npm run typecheck",
+      "exit_code": 0,
+      "output_sha256": "sha256:b41ac9880a7c3cc289ace37e59c130df3af2d0be0c8d2d40080be90a411c0791",
+      "tree": "sha256:b917aaa39e9b1d4f03efbe33e3103273363e9c8879160c8ae73d9e2bfa2c7efb",
+      "recorded_at": "2026-10-17T23:45:42.932Z"
+    },
+    {
+      "id": "run-18",
+      "purpose": "migration-test",
+      "command": "npx vitest run test/package.test.ts",
+      "exit_code": 0,
+      "output_sha256": "sha256:c529e2e5712688aa9727325459b72b90db6e07ba51fe3d2c70b7285d240f6fb7",
+      "tree": "sha256:d057111bdc92bef3b651324a16055ab9b839640f8c681ce022d693c71c77ae91",
+      "recorded_at": "2026-10-17T23:45:48.296Z"
+    }
+  ],
+  "reviews": [
+    {
+      "schema_version": 2,
+      "lineage_id": "sha256:f7cde5810adcab5dcffc51b9625ad977c90e77e7889bf6cd196822093d8d1b4c",
+      "generation": 1,
+      "predecessor_lineage_id": null,
+      "migration": null,
+      "recovery": null,
+      "revision": 3,
+      "status": "approved",
+      "genesis": {
+        "candidate": {
+          "projection": "idd-tree-diff/v1",
+          "base_tree": "2eed10ec6c03e60fd3de33a5f590c639bf358433",
+          "candidate_tree": "8315dec87ab9e25ae5e85f6c38b8d629c1c5ad20",
+          "paths": [
+            ".github/workflows/ci.yml",
+            ".github/workflows/publish.yml",
+            "LICENSE",
+            "README.md",
+            "docs/architecture/knowledge-map.yaml",
+            "docs/product/functional-scope.md",
+            "package-lock.json",
+            "package.json",
+            "src/panel.tsx",
+            "src/tui.tsx",
+            "test/package.test.ts"
+          ],
+          "diff_hash": "sha256:a9296c00baec6d940311cdfeda1ad391a56055f6dc00e534dedb6e99844dbbac",
+          "paths_digest": "sha256:eb0164c31670af0b7a0ef2aacd284cf798a5009c136095902180d2e0ed3f4f92",
+          "authored_lines": 366,
+          "original_changed_lines": 379
+        },
+        "candidate_id": "sha256:f8ca4c57c6dd9f2d9b7a5bee6ec0293438b0652a94a8105aa3d8ec50b7ef9165",
+        "paths": [
+          ".github/workflows/ci.yml",
+          ".github/workflows/publish.yml",
+          "LICENSE",
+          "README.md",
+          "docs/architecture/knowledge-map.yaml",
+          "docs/product/functional-scope.md",
+          "package-lock.json",
+          "package.json",
+          "src/panel.tsx",
+          "src/tui.tsx",
+          "test/package.test.ts"
+        ],
+        "classification": "high-risk",
+        "selected_domains": [
+          "trust"
+        ],
+        "evidence_fingerprint": "8315dec87ab9e25ae5e85f6c38b8d629c1c5ad20",
+        "original_changed_lines": 379,
+        "authored_lines": 366
+      },
+      "current_candidate_id": "sha256:f8ca4c57c6dd9f2d9b7a5bee6ec0293438b0652a94a8105aa3d8ec50b7ef9165",
+      "current_candidate": {
+        "projection": "idd-tree-diff/v1",
+        "base_tree": "2eed10ec6c03e60fd3de33a5f590c639bf358433",
+        "candidate_tree": "8315dec87ab9e25ae5e85f6c38b8d629c1c5ad20",
+        "paths": [
+          ".github/workflows/ci.yml",
+          ".github/workflows/publish.yml",
+          "LICENSE",
+          "README.md",
+          "docs/architecture/knowledge-map.yaml",
+          "docs/product/functional-scope.md",
+          "package-lock.json",
+          "package.json",
+          "src/panel.tsx",
+          "src/tui.tsx",
+          "test/package.test.ts"
+        ],
+        "diff_hash": "sha256:a9296c00baec6d940311cdfeda1ad391a56055f6dc00e534dedb6e99844dbbac",
+        "paths_digest": "sha256:eb0164c31670af0b7a0ef2aacd284cf798a5009c136095902180d2e0ed3f4f92",
+        "authored_lines": 366,
+        "original_changed_lines": 379
+      },
+      "lenses": {
+        "trust": {
+          "selected": true,
+          "status": "completed",
+          "request_id": "m3-package:lens-start:1:0",
+          "result_digest": "sha256:0fa38eeaca8882e0d194fd5ba5d8378917d98e795204f8f7a9dfdb78f111f3cc",
+          "result": {
+            "findings": []
+          },
+          "operation": null,
+          "result_request_id": "m3-package:lens-result:1:1"
+        },
+        "runtime": {
+          "selected": false,
+          "status": "skipped",
+          "request_id": null,
+          "result_digest": null,
+          "result": null,
+          "operation": null
+        },
+        "evolution": {
+          "selected": false,
+          "status": "skipped",
+          "request_id": null,
+          "result_digest": null,
+          "result": null,
+          "operation": null
+        },
+        "efficiency": {
+          "selected": false,
+          "status": "skipped",
+          "request_id": null,
+          "result_digest": null,
+          "result": null,
+          "operation": null
+        }
+      },
+      "findings": [],
+      "findings_digest": "sha256:4d59fd4aa8eefff6dbf7cd085cc100ee928217573658f8bbc301aa4a3f1adc0f",
+      "correction_budget": {
+        "limit_lines": 190,
+        "used_lines": 0,
+        "failed_attempts": 0,
+        "max_failed_attempts": 3
+      },
+      "correction_history": [],
+      "validation_history": [],
+      "follow_ups": [],
+      "pending_operation": null,
+      "pending_correction": null,
+      "terminal_reason": "no-unresolved-blocking-findings"
+    },
+    {
+      "schema_version": 2,
+      "lineage_id": "sha256:f4c684ca0f90256826c5d7ba27b33496a5ceaa9a524de8b13d3cda34427c32c6",
+      "generation": 2,
+      "predecessor_lineage_id": "sha256:f7cde5810adcab5dcffc51b9625ad977c90e77e7889bf6cd196822093d8d1b4c",
+      "migration": null,
+      "recovery": null,
+      "revision": 3,
+      "status": "approved",
+      "genesis": {
+        "candidate": {
+          "projection": "idd-tree-diff/v1",
+          "base_tree": "2eed10ec6c03e60fd3de33a5f590c639bf358433",
+          "candidate_tree": "7fa2872d7efbb3ec8f5682531b79f4e7b59bdca4",
+          "paths": [
+            ".github/workflows/ci.yml",
+            ".github/workflows/publish.yml",
+            ".gitignore",
+            "LICENSE",
+            "README.md",
+            "docs/architecture/knowledge-map.yaml",
+            "docs/product/functional-scope.md",
+            "package-lock.json",
+            "package.json",
+            "scripts/build.mjs",
+            "src/tui.tsx",
+            "test/package.test.ts"
+          ],
+          "diff_hash": "sha256:7d115b90a46f27f3674ab30bff9e031e4821fb36978d224dd3058b405ac7f283",
+          "paths_digest": "sha256:1b0317fef6bae3977fb383788b501d52ad13eb6832fa71302f027a29ab002cef",
+          "authored_lines": 453,
+          "original_changed_lines": 470
+        },
+        "candidate_id": "sha256:02be1b033286acd957a7d1ceb272dc8e2248e6f29de3f96bbbcafd8dfb844be1",
+        "paths": [
+          ".github/workflows/ci.yml",
+          ".github/workflows/publish.yml",
+          ".gitignore",
+          "LICENSE",
+          "README.md",
+          "docs/architecture/knowledge-map.yaml",
+          "docs/product/functional-scope.md",
+          "package-lock.json",
+          "package.json",
+          "scripts/build.mjs",
+          "src/tui.tsx",
+          "test/package.test.ts"
+        ],
+        "classification": "high-risk",
+        "selected_domains": [
+          "trust"
+        ],
+        "evidence_fingerprint": "7fa2872d7efbb3ec8f5682531b79f4e7b59bdca4",
+        "original_changed_lines": 470,
+        "authored_lines": 453
+      },
+      "current_candidate_id": "sha256:02be1b033286acd957a7d1ceb272dc8e2248e6f29de3f96bbbcafd8dfb844be1",
+      "current_candidate": {
+        "projection": "idd-tree-diff/v1",
+        "base_tree": "2eed10ec6c03e60fd3de33a5f590c639bf358433",
+        "candidate_tree": "7fa2872d7efbb3ec8f5682531b79f4e7b59bdca4",
+        "paths": [
+          ".github/workflows/ci.yml",
+          ".github/workflows/publish.yml",
+          ".gitignore",
+          "LICENSE",
+          "README.md",
+          "docs/architecture/knowledge-map.yaml",
+          "docs/product/functional-scope.md",
+          "package-lock.json",
+          "package.json",
+          "scripts/build.mjs",
+          "src/tui.tsx",
+          "test/package.test.ts"
+        ],
+        "diff_hash": "sha256:7d115b90a46f27f3674ab30bff9e031e4821fb36978d224dd3058b405ac7f283",
+        "paths_digest": "sha256:1b0317fef6bae3977fb383788b501d52ad13eb6832fa71302f027a29ab002cef",
+        "authored_lines": 453,
+        "original_changed_lines": 470
+      },
+      "lenses": {
+        "trust": {
+          "selected": true,
+          "status": "completed",
+          "request_id": "m3-package:lens-start:2:0",
+          "result_digest": "sha256:0fa38eeaca8882e0d194fd5ba5d8378917d98e795204f8f7a9dfdb78f111f3cc",
+          "result": {
+            "findings": []
+          },
+          "operation": null,
+          "result_request_id": "m3-package:lens-result:2:1"
+        },
+        "runtime": {
+          "selected": false,
+          "status": "skipped",
+          "request_id": null,
+          "result_digest": null,
+          "result": null,
+          "operation": null
+        },
+        "evolution": {
+          "selected": false,
+          "status": "skipped",
+          "request_id": null,
+          "result_digest": null,
+          "result": null,
+          "operation": null
+        },
+        "efficiency": {
+          "selected": false,
+          "status": "skipped",
+          "request_id": null,
+          "result_digest": null,
+          "result": null,
+          "operation": null
+        }
+      },
+      "findings": [],
+      "findings_digest": "sha256:4d59fd4aa8eefff6dbf7cd085cc100ee928217573658f8bbc301aa4a3f1adc0f",
+      "correction_budget": {
+        "limit_lines": 200,
+        "used_lines": 0,
+        "failed_attempts": 0,
+        "max_failed_attempts": 3
+      },
+      "correction_history": [],
+      "validation_history": [],
+      "follow_ups": [],
+      "pending_operation": null,
+      "pending_correction": null,
+      "terminal_reason": "no-unresolved-blocking-findings"
+    }
+  ],
+  "closed_at": "2026-10-17T23:45:48.349Z"
+}
