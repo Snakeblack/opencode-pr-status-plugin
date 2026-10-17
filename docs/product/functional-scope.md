@@ -5,17 +5,19 @@
 ## Actors
 
 - **Developer (TUI user)** — primary actor; works in OpenCode and reads the
-  panel. Assumed (2026-10-17, reviewable): only the author matters for the
-  first slice; revisit when publishing to npm.
+  panel. The author is the primary user; since the npm publish (confirmed
+  2026-10-17) any OpenCode user who installs the plugin is a secondary user in
+  scope.
 - External systems at the boundary: **`gh` CLI** (credential holder, local
   process) and **GitHub** (source of truth for PRs and checks).
 
 ## Capabilities — first slice (confirmed 2026-10-17)
 
-1. List the project's open PRs (number, title, branch).
+1. List the authenticated user's own open PRs (number, title, branch).
 2. CI status per PR: running / green / red (aggregated checks).
 3. Auto-refresh while the panel is open (no manual reload).
-4. Visual organisation: tabs and/or grouping of chained (stacked) PRs.
+4. Visual organisation: chained (stacked) PRs grouped under their root (no
+   tabs).
 
 Not in this slice: opening the PR in the browser (mentioned, not selected).
 
@@ -37,6 +39,9 @@ Undecided (not excluded): notifications/sounds.
 
 ## Open questions
 
-- Which PRs exactly (drafts? only mine? all open?) — first-slice design.
-- Stack grouping: how a chain is detected/visualised — first-slice design.
 - Notifications: decide later (not excluded).
+
+Settled by the first slice's design (2026-10-17): only the authenticated user's
+own open PRs are listed (drafts included and marked); a chain is detected by an
+exact `base` = `head` branch match and grouped under its root, children indented
+base to tip.

@@ -42,15 +42,14 @@
     {
       "id": "functional.actors",
       "dimension": "functional",
-      "state": "assumed",
+      "state": "confirmed",
       "decisions": [
         "system-boundaries"
       ],
       "source": {
         "kind": "user",
-        "ref": "respuesta del usuario, foundation 2026-10-17: 'creo que solo yo, pero no lo se'"
-      },
-      "review_trigger": "re-evaluar al preparar la publicacion en npm o cuando haya usuarios distintos del autor"
+        "ref": "respuesta del usuario, cambio M3 2026-10-17: los usuarios secundarios (cualquier usuario de OpenCode que instale el plugin) entran en el alcance"
+      }
     },
     {
       "id": "functional.capabilities",
