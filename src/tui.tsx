@@ -1,3 +1,4 @@
+/** @jsxImportSource @opentui/solid */
 // The CLI entry point OpenCode loads through the package's `./tui` export.
 
 import { Panel } from "./panel";

@@ -1,3 +1,4 @@
+/** @jsxImportSource @opentui/solid */
 // The sidebar panel: the current project's open pull requests, grouped by
 // stack, each with its aggregated CI state. It reads through the local gh
 // client on a timer while it is mounted, keeps the last good list when a

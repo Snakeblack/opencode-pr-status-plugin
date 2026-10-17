@@ -1,16 +1,39 @@
 {
   "name": "opencode-pr-status-plugin",
-  "version": "0.0.0",
+  "version": "0.1.0",
+  "description": "OpenCode V2 sidebar panel showing your open pull requests and their aggregated CI state, read through the local gh CLI.",
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
     "./tui": "./src/tui.tsx"
   },
+  "files": [
+    "src"
+  ],
   "scripts": {
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "lint": "biome lint ."
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Snakeblack/opencode-pr-status-plugin.git"
+  },
+  "homepage": "https://github.com/Snakeblack/opencode-pr-status-plugin#readme",
+  "bugs": {
+    "url": "https://github.com/Snakeblack/opencode-pr-status-plugin/issues"
+  },
+  "keywords": [
+    "opencode",
+    "opencode-plugin",
+    "opentui",
+    "tui",
+    "pull-requests",
+    "ci",
+    "gh"
+  ],
+  "author": "Snakeblack",
+  "license": "SEE LICENSE IN LICENSE",
   "dependencies": {
     "@opencode/plugin": "^2.0.32"
   },
