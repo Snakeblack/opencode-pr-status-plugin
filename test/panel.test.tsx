@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { PluginContextProvider, type usePlugin } from "@opencode/plugin/tui";
 import type { Renderable } from "@opentui/core";
 import { testRender } from "@opentui/solid";
@@ -6,6 +8,11 @@ import { describe, expect, it, vi } from "vitest";
 
 import { ghClient } from "../src/client/gh";
 import { Panel } from "../src/panel";
+
+const root = resolve(import.meta.dirname, "..");
+
+const nodeMajor = Number.parseInt(process.versions.node.split(".")[0] ?? "0", 10);
+const hasNativeFfi = nodeMajor >= 26;
 
 type HostContext = ReturnType<typeof usePlugin>;
 
@@ -25,7 +32,21 @@ const fakeTheme = {
 const fakeContext = { theme: fakeTheme } as unknown as HostContext;
 
 describe("Panel scrollbox and height constraint", () => {
-  it("renders PR items inside a scrollbox with maxHeight 11 while keeping header outside", async () => {
+  it("wraps the pull request list in a scrollbox with maxHeight 11", () => {
+    const source = readFileSync(resolve(root, "src/panel.tsx"), "utf8");
+    expect(source).toMatch(/<scrollbox\s+maxHeight=\{11\}>\s*<For\s+each=\{state\(\)\.prs\}>/);
+  });
+
+  it("keeps the header outside the scrollbox so it remains visible while scrolling", () => {
+    const source = readFileSync(resolve(root, "src/panel.tsx"), "utf8");
+    const headerIndex = source.indexOf("Pull requests");
+    const scrollboxIndex = source.indexOf("<scrollbox");
+    expect(headerIndex).toBeGreaterThan(-1);
+    expect(scrollboxIndex).toBeGreaterThan(-1);
+    expect(headerIndex).toBeLessThan(scrollboxIndex);
+  });
+
+  it.runIf(hasNativeFfi)("renders PR items inside a scrollbox with maxHeight 11 while keeping header outside", async () => {
     vi.spyOn(ghClient, "listOpenPrs").mockResolvedValue({
       ok: true,
       prs: [
