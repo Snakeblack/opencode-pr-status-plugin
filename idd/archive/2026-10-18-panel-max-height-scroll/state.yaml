@@ -1,0 +1,348 @@
+{
+  "schema": "idd-state/v1",
+  "change": "panel-max-height-scroll",
+  "mode": "idd",
+  "status": "closed",
+  "intent": {
+    "request": "lo que quiero es que tenga un maximo de altura, que se pueda ver aprox 5-6PRs y que haya un scroll vertical, esto para que no ocupe toda la banda derecha de opencode",
+    "kind": "feature",
+    "summary": "limita la altura del panel a ~5-6 PRs con scroll vertical",
+    "acceptance": "la lista de PRs no supera la altura máxima de 5-6 elementos y permite scroll vertical cuando hay más PRs"
+  },
+  "facts": {
+    "coverage": [
+      {
+        "category": "inputs",
+        "question": "¿Qué altura máxima en filas se fija (10 filas para 5 PRs, 11 filas para 5 y medio con corte visual, o 12 filas para 6 PRs) y confirmamos que envuelve solo la lista de PRs encogiéndose si hay menos elementos?"
+      },
+      {
+        "category": "uniqueness",
+        "cite": {
+          "kind": "path",
+          "path": "src/domain/stacks.ts",
+          "line": 40
+        }
+      },
+      {
+        "category": "persistence",
+        "cite": {
+          "kind": "path",
+          "path": "docs/architecture/decisions/0002-no-persisted-state.md",
+          "line": 1
+        }
+      },
+      {
+        "category": "copy",
+        "cite": {
+          "kind": "path",
+          "path": "src/panel.tsx",
+          "line": 125
+        }
+      },
+      {
+        "category": "url-state",
+        "cite": {
+          "kind": "path",
+          "path": "docs/architecture/decisions/0002-no-persisted-state.md",
+          "line": 1
+        }
+      },
+      {
+        "category": "accessibility",
+        "cite": {
+          "kind": "path",
+          "path": "src/panel.tsx",
+          "line": 18
+        }
+      },
+      {
+        "category": "errors",
+        "cite": {
+          "kind": "path",
+          "path": "src/panel.tsx",
+          "line": 25
+        }
+      }
+    ]
+  },
+  "plan": {
+    "paths": [
+      "src/panel.tsx",
+      "test/panel.test.ts",
+      "test/panel.test.tsx",
+      "vitest.config.ts"
+    ],
+    "work_units": 1,
+    "decision": true,
+    "operations": []
+  },
+  "signals": [
+    {
+      "id": "always",
+      "reason": "every change with a resolved intent",
+      "source": "declaration"
+    },
+    {
+      "id": "strict-tdd",
+      "reason": "the project declares strict_tdd",
+      "source": "declaration"
+    },
+    {
+      "id": "multi-unit-or-decision",
+      "reason": "declared a non-obvious decision",
+      "source": "declaration"
+    },
+    {
+      "id": "adr-or-quality-attribute",
+      "reason": "declared ADR 0001, 0002, 0003 and quality scenario fresh-ci-state, panel-resilience, visual-ci-state-legible",
+      "source": "declaration"
+    }
+  ],
+  "impacts": [
+    {
+      "kind": "adr",
+      "id": "0001",
+      "impact": "conforms",
+      "reason": "La lectura de PRs y CI se mantiene a través del cliente local gh sin clientes HTTP ni credenciales adicionales."
+    },
+    {
+      "kind": "adr",
+      "id": "0002",
+      "impact": "conforms",
+      "reason": "No se persiste estado; el límite de altura y el scrollbox son elementos puramente visuales en memoria dentro de la TUI."
+    },
+    {
+      "kind": "adr",
+      "id": "0003",
+      "impact": "conforms",
+      "reason": "El texto no confiable de la plataforma sigue normalizándose en su frontera antes del renderizado."
+    },
+    {
+      "kind": "scenario",
+      "id": "fresh-ci-state",
+      "impact": "conforms",
+      "reason": "El refresco reactivo de la lista de PRs dentro del scrollbox se mantiene idéntico."
+    },
+    {
+      "kind": "scenario",
+      "id": "panel-resilience",
+      "impact": "conforms",
+      "reason": "Los estados de error, carga y vacío se preservan sin romper la TUI."
+    },
+    {
+      "kind": "scenario",
+      "id": "visual-ci-state-legible",
+      "impact": "conforms",
+      "reason": "La altura máxima de 11 filas (~5-6 PRs) y el scroll vertical evitan desbordar la barra lateral manteniendo los estados legibles."
+    }
+  ],
+  "attestations": [
+    {
+      "kind": "adr",
+      "id": "0001",
+      "evidence": "Verificado: el plugin no realiza llamadas HTTP directas ni lee credenciales; mantiene la invocación local de gh.",
+      "recorded_at": "2026-10-18T00:35:42.832Z"
+    },
+    {
+      "kind": "adr",
+      "id": "0002",
+      "evidence": "Verificado: no hay escrituras en disco ni almacenamiento en el host; la altura máxima y el scrollbox son elementos puramente de presentación en memoria.",
+      "recorded_at": "2026-10-18T00:35:42.887Z"
+    },
+    {
+      "kind": "adr",
+      "id": "0003",
+      "evidence": "Verificado: los títulos y ramas siguen pasando por la frontera de normalización de texto seguro en safe-text antes de renderizarse.",
+      "recorded_at": "2026-10-18T00:35:42.945Z"
+    }
+  ],
+  "obligations": [
+    {
+      "id": "checks-pass",
+      "signal": "always",
+      "status": "satisfied",
+      "evidence": [
+        "ev-4"
+      ]
+    },
+    {
+      "id": "tdd-red-green",
+      "signal": "strict-tdd",
+      "status": "satisfied",
+      "evidence": [
+        "ev-1"
+      ]
+    },
+    {
+      "id": "living-doc",
+      "signal": "multi-unit-or-decision",
+      "status": "satisfied",
+      "evidence": [
+        "ev-5"
+      ]
+    },
+    {
+      "id": "adr-impact-declaration",
+      "signal": "adr-or-quality-attribute",
+      "status": "satisfied",
+      "evidence": [
+        "ev-3"
+      ]
+    }
+  ],
+  "gates": [
+    {
+      "id": "open-facts",
+      "status": "resolved",
+      "answer": "Opción A: altura máxima de 11 filas (5 PRs completos y corte visual del 6º), scroll vertical en scrollbox envolviendo sólo la lista de PRs manteniendo el encabezado fijo y encogiéndose con pocos elementos",
+      "source": "user"
+    }
+  ],
+  "evidence": [
+    {
+      "id": "ev-1",
+      "kind": "tdd-red-green",
+      "obligation": "tdd-red-green",
+      "recorded_at": "2026-10-18T00:34:22.029Z",
+      "detail": {
+        "red": "run-1",
+        "green": "run-2"
+      }
+    },
+    {
+      "id": "ev-2",
+      "kind": "check-run",
+      "obligation": "checks-pass",
+      "recorded_at": "2026-10-18T00:35:37.170Z",
+      "detail": {
+        "tree": "sha256:557585cb729eddb6893f1ce840b960e6676f7be5c2acc3ae8f791bd4e31b2edb",
+        "runs": [
+          "run-3",
+          "run-4",
+          "run-5"
+        ]
+      }
+    },
+    {
+      "id": "ev-3",
+      "kind": "adr-impact-declaration",
+      "obligation": "adr-impact-declaration",
+      "recorded_at": "2026-10-18T00:35:37.170Z",
+      "detail": {
+        "refs": [
+          "adr:0001 conforms",
+          "adr:0002 conforms",
+          "adr:0003 conforms",
+          "scenario:fresh-ci-state conforms",
+          "scenario:panel-resilience conforms",
+          "scenario:visual-ci-state-legible conforms"
+        ],
+        "records": []
+      }
+    },
+    {
+      "id": "ev-4",
+      "kind": "check-run",
+      "obligation": "checks-pass",
+      "recorded_at": "2026-10-18T00:36:03.910Z",
+      "detail": {
+        "tree": "sha256:557585cb729eddb6893f1ce840b960e6676f7be5c2acc3ae8f791bd4e31b2edb",
+        "runs": [
+          "run-6",
+          "run-7",
+          "run-8"
+        ]
+      }
+    },
+    {
+      "id": "ev-5",
+      "kind": "living-doc-current",
+      "obligation": "living-doc",
+      "recorded_at": "2026-10-18T00:36:10.667Z"
+    }
+  ],
+  "base": "03772635b9706d6be059cd7ed3b8d2dc3ca01da3",
+  "runs": [
+    {
+      "id": "run-1",
+      "purpose": "tdd-red-green",
+      "unit": "panel",
+      "command": "npx vitest run test/panel.test.tsx",
+      "exit_code": 1,
+      "output_sha256": "sha256:a2a8bb38c69a4859c4577d53fb6520a6a570de15c866d3a2fc9ef44840530915",
+      "tree": "sha256:6f6fb2d72ed9fab3e2716c3483390fd0fd28aa20fbdf044b39000ec4f7db98e2",
+      "recorded_at": "2026-10-18T00:34:08.004Z"
+    },
+    {
+      "id": "run-2",
+      "purpose": "tdd-red-green",
+      "unit": "panel",
+      "command": "npx vitest run test/panel.test.tsx",
+      "exit_code": 0,
+      "output_sha256": "sha256:0defff4b9588a4898bc5c34e4f051ac704e39b8ffc8932ee9bfed4d8a4d86aa0",
+      "tree": "sha256:7cb1e92fdc54548fcde1859e8ad9df80eb2ec35ea13d47d3bedfeba5bc0bcacf",
+      "recorded_at": "2026-10-18T00:34:22.029Z"
+    },
+    {
+      "id": "run-3",
+      "purpose": "checks",
+      "name": "test",
+      "command": "npm test",
+      "exit_code": 0,
+      "output_sha256": "sha256:56eb78b636cd726a6e8a439013443a8c67206ec896b3970a4b3a441c4d51de4b",
+      "tree": "sha256:557585cb729eddb6893f1ce840b960e6676f7be5c2acc3ae8f791bd4e31b2edb",
+      "recorded_at": "2026-10-18T00:35:37.170Z"
+    },
+    {
+      "id": "run-4",
+      "purpose": "checks",
+      "name": "lint",
+      "command": "npm run lint",
+      "exit_code": 0,
+      "output_sha256": "sha256:74e8e4655b87a63a3020758591db5315f1c9aff7547356cd620400c9d815b8d3",
+      "tree": "sha256:557585cb729eddb6893f1ce840b960e6676f7be5c2acc3ae8f791bd4e31b2edb",
+      "recorded_at": "2026-10-18T00:35:37.170Z"
+    },
+    {
+      "id": "run-5",
+      "purpose": "checks",
+      "name": "typecheck",
+      "command": "npm run typecheck",
+      "exit_code": 0,
+      "output_sha256": "sha256:b41ac9880a7c3cc289ace37e59c130df3af2d0be0c8d2d40080be90a411c0791",
+      "tree": "sha256:557585cb729eddb6893f1ce840b960e6676f7be5c2acc3ae8f791bd4e31b2edb",
+      "recorded_at": "2026-10-18T00:35:37.170Z"
+    },
+    {
+      "id": "run-6",
+      "purpose": "checks",
+      "name": "test",
+      "command": "npm test",
+      "exit_code": 0,
+      "output_sha256": "sha256:271b2f2b1db6d2a338813f8ee75976b3caf61a122546a0933509427bf22f548d",
+      "tree": "sha256:557585cb729eddb6893f1ce840b960e6676f7be5c2acc3ae8f791bd4e31b2edb",
+      "recorded_at": "2026-10-18T00:36:03.910Z"
+    },
+    {
+      "id": "run-7",
+      "purpose": "checks",
+      "name": "lint",
+      "command": "npm run lint",
+      "exit_code": 0,
+      "output_sha256": "sha256:e93bee07a687e6c67a4bde12cc5404f4090b61eef87a766f5e67859c442331a0",
+      "tree": "sha256:557585cb729eddb6893f1ce840b960e6676f7be5c2acc3ae8f791bd4e31b2edb",
+      "recorded_at": "2026-10-18T00:36:03.910Z"
+    },
+    {
+      "id": "run-8",
+      "purpose": "checks",
+      "name": "typecheck",
+      "command": "npm run typecheck",
+      "exit_code": 0,
+      "output_sha256": "sha256:b41ac9880a7c3cc289ace37e59c130df3af2d0be0c8d2d40080be90a411c0791",
+      "tree": "sha256:557585cb729eddb6893f1ce840b960e6676f7be5c2acc3ae8f791bd4e31b2edb",
+      "recorded_at": "2026-10-18T00:36:03.910Z"
+    }
+  ],
+  "closed_at": "2026-10-18T00:36:10.667Z"
+}

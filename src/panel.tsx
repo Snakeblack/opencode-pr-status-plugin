@@ -145,7 +145,9 @@ export function Panel(props: PanelProps) {
       <Show when={empty()}>
         <text fg={context.theme.text.muted}>No open pull requests.</text>
       </Show>
-      <For each={state().prs}>{(pr) => <PullRequestRow pr={pr} />}</For>
+      <scrollbox maxHeight={11}>
+        <For each={state().prs}>{(pr) => <PullRequestRow pr={pr} />}</For>
+      </scrollbox>
     </box>
   );
 }
