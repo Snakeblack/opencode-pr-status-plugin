@@ -1,0 +1,159 @@
+{
+  "schema": "idd-state/v1",
+  "change": "readme-ospec-attribution",
+  "mode": "idd",
+  "status": "closed",
+  "intent": {
+    "request": "me gustaria que añadieras en el readme que fue creado con el harness de snakeblack ospec-workflow, enlace al repo de gh, que este casi al principio",
+    "kind": "docs",
+    "summary": "menciona en el README que el proyecto fue creado con el harness ospec-workflow de Snakeblack",
+    "acceptance": "el README.md incluye el enlace al repositorio de ospec-workflow casi al principio"
+  },
+  "facts": {
+    "basis": "la petición del usuario define exactamente el texto, el enlace al repo de gh y su posición al principio del README"
+  },
+  "plan": {
+    "paths": [
+      "README.md"
+    ],
+    "work_units": 1,
+    "decision": false,
+    "operations": []
+  },
+  "signals": [
+    {
+      "id": "always",
+      "reason": "every change with a resolved intent",
+      "source": "declaration"
+    },
+    {
+      "id": "adr-or-quality-attribute",
+      "reason": "declared ADR 0001, 0002, 0003 and quality scenario fresh-ci-state, panel-resilience, visual-ci-state-legible",
+      "source": "declaration"
+    }
+  ],
+  "impacts": [
+    {
+      "kind": "adr",
+      "id": "0001",
+      "impact": "conforms",
+      "reason": "Cambio únicamente en documentación; no altera la arquitectura ni el cliente."
+    },
+    {
+      "kind": "adr",
+      "id": "0002",
+      "impact": "conforms",
+      "reason": "Cambio únicamente en documentación; sin persistencia."
+    },
+    {
+      "kind": "adr",
+      "id": "0003",
+      "impact": "conforms",
+      "reason": "Cambio únicamente en documentación; sin impacto en renderizado de texto."
+    },
+    {
+      "kind": "scenario",
+      "id": "fresh-ci-state",
+      "impact": "conforms",
+      "reason": "Documentación; sin impacto en ciclo de CI."
+    },
+    {
+      "kind": "scenario",
+      "id": "panel-resilience",
+      "impact": "conforms",
+      "reason": "Documentación; sin impacto en resiliencia."
+    },
+    {
+      "kind": "scenario",
+      "id": "visual-ci-state-legible",
+      "impact": "conforms",
+      "reason": "Documentación; sin impacto en UI."
+    }
+  ],
+  "obligations": [
+    {
+      "id": "checks-pass",
+      "signal": "always",
+      "status": "satisfied",
+      "evidence": [
+        "ev-1"
+      ]
+    },
+    {
+      "id": "adr-impact-declaration",
+      "signal": "adr-or-quality-attribute",
+      "status": "satisfied",
+      "evidence": [
+        "ev-2"
+      ]
+    }
+  ],
+  "gates": [],
+  "evidence": [
+    {
+      "id": "ev-1",
+      "kind": "check-run",
+      "obligation": "checks-pass",
+      "recorded_at": "2026-10-18T00:40:17.610Z",
+      "detail": {
+        "tree": "sha256:95f95f390225ca42cb80c570ce74ff256fd822c9bf3a3439eb2e4b64b36953c0",
+        "runs": [
+          "run-1",
+          "run-2",
+          "run-3"
+        ]
+      }
+    },
+    {
+      "id": "ev-2",
+      "kind": "adr-impact-declaration",
+      "obligation": "adr-impact-declaration",
+      "recorded_at": "2026-10-18T00:40:17.610Z",
+      "detail": {
+        "refs": [
+          "adr:0001 conforms",
+          "adr:0002 conforms",
+          "adr:0003 conforms",
+          "scenario:fresh-ci-state conforms",
+          "scenario:panel-resilience conforms",
+          "scenario:visual-ci-state-legible conforms"
+        ],
+        "records": []
+      }
+    }
+  ],
+  "base": "c6e04b5deedec0b4fc1dbbe6af45f47b0d7de44e",
+  "runs": [
+    {
+      "id": "run-1",
+      "purpose": "checks",
+      "name": "test",
+      "command": "npm test",
+      "exit_code": 0,
+      "output_sha256": "sha256:9e96e851e04ba97d441203f82e82cd2bcde72a6d016cf93fb5788e5716b46944",
+      "tree": "sha256:95f95f390225ca42cb80c570ce74ff256fd822c9bf3a3439eb2e4b64b36953c0",
+      "recorded_at": "2026-10-18T00:40:17.610Z"
+    },
+    {
+      "id": "run-2",
+      "purpose": "checks",
+      "name": "lint",
+      "command": "npm run lint",
+      "exit_code": 0,
+      "output_sha256": "sha256:1c5a1096b4f60288f82a53e9eaa3858366eeb855b80ae4ef11e62d829c32dcf3",
+      "tree": "sha256:95f95f390225ca42cb80c570ce74ff256fd822c9bf3a3439eb2e4b64b36953c0",
+      "recorded_at": "2026-10-18T00:40:17.610Z"
+    },
+    {
+      "id": "run-3",
+      "purpose": "checks",
+      "name": "typecheck",
+      "command": "npm run typecheck",
+      "exit_code": 0,
+      "output_sha256": "sha256:b41ac9880a7c3cc289ace37e59c130df3af2d0be0c8d2d40080be90a411c0791",
+      "tree": "sha256:95f95f390225ca42cb80c570ce74ff256fd822c9bf3a3439eb2e4b64b36953c0",
+      "recorded_at": "2026-10-18T00:40:17.610Z"
+    }
+  ],
+  "closed_at": "2026-10-18T00:40:21.265Z"
+}

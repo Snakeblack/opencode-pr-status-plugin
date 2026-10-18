@@ -6,6 +6,8 @@ An [OpenCode V2](https://opencode.ai/v2) TUI plugin: a sidebar panel with your
 open pull requests and their aggregated CI state, read through the local
 [`gh`](https://cli.github.com/) CLI — no browser, no context switch.
 
+Created with the [ospec-workflow](https://github.com/Snakeblack/ospec-workflow) harness by [Snakeblack](https://github.com/Snakeblack).
+
 ## What it shows
 
 - Your own open pull requests (`gh pr list --author @me`): state mark, number,
