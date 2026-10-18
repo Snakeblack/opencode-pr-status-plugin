@@ -1,6 +1,6 @@
 {
   "name": "opencode-pr-status-plugin",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "OpenCode V2 sidebar panel showing your open pull requests and their aggregated CI state, read through the local gh CLI.",
   "type": "module",
   "exports": {
